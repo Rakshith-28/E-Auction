@@ -1,7 +1,49 @@
 import axios from 'axios';
 import { clearToken, getToken } from '../utils/tokenUtils';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api';
+const getDefaultBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    return `http://${window.location.hostname}:8080/api`;
+  }
+
+  return 'http://localhost:8080/api';
+};
+
+const normalizeBaseUrl = (rawUrl) => {
+  if (!rawUrl) {
+    return getDefaultBaseUrl();
+  }
+
+  const trimmed = rawUrl.trim();
+
+  if (!trimmed) {
+    return getDefaultBaseUrl();
+  }
+
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+
+  if (trimmed.startsWith('//')) {
+    return `http:${trimmed}`;
+  }
+
+  if (trimmed.startsWith(':')) {
+    return `http://localhost${trimmed}`;
+  }
+
+  if (trimmed.startsWith('/')) {
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return `${window.location.origin}${trimmed}`;
+    }
+
+    return `http://localhost:8080${trimmed}`;
+  }
+
+  return `http://${trimmed}`;
+};
+
+const BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,

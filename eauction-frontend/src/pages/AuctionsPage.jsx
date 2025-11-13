@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getActiveAuctions } from '../services/auctionService.js';
+import { formatDateTime, timeRemaining } from '../utils/dateUtils.js';
 
 const AuctionsPage = () => {
   const [auctions, setAuctions] = useState([]);
@@ -58,7 +59,12 @@ const AuctionsPage = () => {
               </div>
               <div className="flex justify-between">
                 <dt>Ends</dt>
-                <dd>{auction.endTime ? new Date(auction.endTime).toLocaleString() : 'TBD'}</dd>
+                <dd className="text-right">
+                  <span className="block text-slate-900">{auction.endTime ? formatDateTime(auction.endTime) : 'TBD'}</span>
+                  {auction.endTime && (
+                    <span className="text-xs text-slate-400">{timeRemaining(auction.endTime)} remaining</span>
+                  )}
+                </dd>
               </div>
             </dl>
             <Link

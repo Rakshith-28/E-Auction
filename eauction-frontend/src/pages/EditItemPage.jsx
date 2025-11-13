@@ -56,6 +56,14 @@ const EditItemPage = () => {
       auctionEndTime: formState.auctionEndTime ? new Date(formState.auctionEndTime).toISOString() : null,
     };
 
+    if (payload.auctionStartTime && payload.auctionEndTime) {
+      if (new Date(payload.auctionEndTime) <= new Date(payload.auctionStartTime)) {
+        setSaving(false);
+        setError('Auction end time must be after the start time.');
+        return;
+      }
+    }
+
     const [, updateError] = await updateItem(id, payload);
 
     setSaving(false);

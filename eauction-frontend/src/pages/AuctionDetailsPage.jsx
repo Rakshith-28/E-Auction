@@ -4,6 +4,7 @@ import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getAuction } from '../services/auctionService.js';
 import { placeBid } from '../services/bidService.js';
+import { formatDateTime, timeRemaining } from '../utils/dateUtils.js';
 
 const AuctionDetailsPage = () => {
   const { id } = useParams();
@@ -117,11 +118,18 @@ const AuctionDetailsPage = () => {
               </div>
               <div>
                 <dt className="font-medium text-slate-900">Start time</dt>
-                <dd className="mt-1">{auction.startTime ? new Date(auction.startTime).toLocaleString() : 'TBD'}</dd>
+                <dd className="mt-1">{formatDateTime(auction.startTime)}</dd>
               </div>
               <div>
                 <dt className="font-medium text-slate-900">End time</dt>
-                <dd className="mt-1">{auction.endTime ? new Date(auction.endTime).toLocaleString() : 'TBD'}</dd>
+                <dd className="mt-1">
+                  {formatDateTime(auction.endTime)}
+                  {auction.endTime && (
+                    <span className="ml-2 rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      {timeRemaining(auction.endTime)} remaining
+                    </span>
+                  )}
+                </dd>
               </div>
             </dl>
           </div>
@@ -135,7 +143,7 @@ const AuctionDetailsPage = () => {
                 {bids.map((bid) => (
                   <li key={bid.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-surface px-4 py-3 text-sm">
                     <span className="font-medium text-slate-900">${bid.amount.toFixed(2)}</span>
-                    <span className="text-slate-500">{new Date(bid.timestamp).toLocaleString()}</span>
+                      <span className="text-slate-500">{formatDateTime(bid.timestamp)}</span>
                   </li>
                 ))}
               </ul>

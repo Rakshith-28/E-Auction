@@ -36,6 +36,14 @@ const CreateItemPage = () => {
       auctionEndTime: formState.auctionEndTime ? new Date(formState.auctionEndTime).toISOString() : null,
     };
 
+    if (payload.auctionStartTime && payload.auctionEndTime) {
+      if (new Date(payload.auctionEndTime) <= new Date(payload.auctionStartTime)) {
+        setLoading(false);
+        setError('Auction end time must be after the start time.');
+        return;
+      }
+    }
+
     const [item, createError] = await createItem(payload);
 
     setLoading(false);

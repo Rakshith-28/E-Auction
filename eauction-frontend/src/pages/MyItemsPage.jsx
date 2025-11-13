@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { deleteItem, getMyItems } from '../services/itemService.js';
+import { formatDateTime } from '../utils/dateUtils.js';
 
 const MyItemsPage = () => {
   const [items, setItems] = useState([]);
@@ -82,6 +83,14 @@ const MyItemsPage = () => {
                   <div>
                     <dt className="font-medium text-slate-900">Status</dt>
                     <dd className="mt-1">{item.status ?? 'DRAFT'}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium text-slate-900">Starts</dt>
+                    <dd className="mt-1 text-slate-500">{formatDateTime(item.auctionStartTime)}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium text-slate-900">Ends</dt>
+                    <dd className="mt-1 text-slate-500">{formatDateTime(item.auctionEndTime)}</dd>
                   </div>
                 </dl>
               </div>

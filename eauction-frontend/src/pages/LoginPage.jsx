@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import { useAuth } from '../hooks/useAuth.js';
@@ -9,6 +9,14 @@ const LoginPage = () => {
   const { login, loading, error } = useAuth();
   const [formState, setFormState] = useState({ email: '', password: '' });
   const [formError, setFormError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
+
+  useEffect(() => {
+    if (location.state?.registered) {
+      setSuccessMessage('Account created successfully. Please sign in.');
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -74,6 +82,7 @@ const LoginPage = () => {
             />
           </div>
 
+          {successMessage && <p className="text-sm text-green-600">{successMessage}</p>}
           {(formError || error) && (
             <p className="text-sm text-red-600">{formError ?? error}</p>
           )}

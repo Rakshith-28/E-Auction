@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getMyBids } from '../services/bidService.js';
+import { formatDateTime } from '../utils/dateUtils.js';
 
 const MyBidsPage = () => {
   const [bids, setBids] = useState([]);
@@ -57,7 +58,7 @@ const MyBidsPage = () => {
                   </span>
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
-                  Placed on {bid.timestamp ? new Date(bid.timestamp).toLocaleString() : 'Unknown date'}
+                  Placed on {formatDateTime(bid.timestamp)}
                 </p>
               </div>
               <p className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">

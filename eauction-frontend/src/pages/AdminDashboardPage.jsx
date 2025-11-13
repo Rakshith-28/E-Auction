@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
-import { getDashboard, getUsers } from '../services/adminService.js';
+import { useAuth } from '../hooks/useAuth.js';
+import { deleteUser, getDashboard, getUsers } from '../services/adminService.js';
 
 const AdminDashboardPage = () => {
+  const { user: currentUser } = useAuth();
   const [metrics, setMetrics] = useState(null);
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +38,22 @@ const AdminDashboardPage = () => {
       </PageContainer>
     );
   }
+
+  const handleUserDelete = async (id) => {
+    if (!window.confirm('Delete this user? This action cannot be undone.')) return;
+
+    setError(null);
+    setDeletingUserId(id);
+    const [, deleteError] = await deleteUser(id);
+    setDeletingUserId(null);
+
+    if (deleteError) {
+      setError(deleteError);
+      return;
+    }
+
+    setUsers((prev) => prev.filter((user) => user.id !== id));
+  };
 
   return (
     <PageContainer
@@ -72,6 +91,7 @@ const AdminDashboardPage = () => {
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Role</th>
                 <th className="px-4 py-3">Joined</th>
+                <th className="px-4 py-3" aria-label="User actions" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-600">
@@ -81,6 +101,20 @@ const AdminDashboardPage = () => {
                   <td className="px-4 py-3">{user.email}</td>
                   <td className="px-4 py-3">{user.role}</td>
                   <td className="px-4 py-3">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
+                  <td className="px-4 py-3">
+                    {currentUser?.id === user.id ? (
+                      <span className="text-xs uppercase tracking-wide text-slate-400">This is you</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleUserDelete(user.id)}
+                        disabled={deletingUserId === user.id}
+                        className="rounded-md border border-red-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-red-600 transition hover:border-red-300 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {deletingUserId === user.id ? 'Deleting…' : 'Delete'}
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>

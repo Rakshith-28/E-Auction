@@ -6,5 +6,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface BidRepository extends MongoRepository<Bid, String> {
     List<Bid> findByItemIdOrderByBidAmountDesc(String itemId);
-    List<Bid> findByBidderId(String bidderId);
+    List<Bid> findByBidderIdOrderByBidTimeDesc(String bidderId);
 }

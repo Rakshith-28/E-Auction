@@ -1,11 +1,19 @@
 import { createContext, useCallback, useEffect, useMemo, useState } from 'react';
-import { fetchCurrentUser, login as loginRequest, logout as logoutRequest } from '../services/authService';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { getFirebaseAuth } from '../firebase';
+import {
+  fetchCurrentUser,
+  login as loginRequest,
+  loginWithGoogle as loginWithGoogleRequest,
+  logout as logoutRequest,
+} from '../services/authService';
 import { clearToken, getToken } from '../utils/tokenUtils';
 
 export const AuthContext = createContext({
   user: null,
   loading: false,
   login: async () => {},
+  loginWithGoogle: async () => {},
   logout: () => {},
   refresh: async () => {},
 });
@@ -46,8 +54,9 @@ export const AuthProvider = ({ children }) => {
   }, [loadUser]);
 
   const login = useCallback(async (credentials) => {
+    setError(null);
     setLoading(true);
-    const [, loginError] = await loginRequest(credentials);
+    const [data, loginError] = await loginRequest(credentials);
 
     if (loginError) {
       setLoading(false);
@@ -57,7 +66,40 @@ export const AuthProvider = ({ children }) => {
 
     await loadUser();
     setLoading(false);
-    return [true, null];
+    return [data, null];
+  }, [loadUser]);
+
+  const loginWithGoogle = useCallback(async () => {
+    setError(null);
+    setLoading(true);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+
+    try {
+      const firebaseAuth = getFirebaseAuth();
+      const result = await signInWithPopup(firebaseAuth, provider);
+      const idToken = await result.user.getIdToken();
+      const [data, googleError] = await loginWithGoogleRequest(idToken);
+
+      if (googleError) {
+        setLoading(false);
+        setError(googleError);
+        return [null, googleError];
+      }
+
+      await loadUser();
+      setLoading(false);
+      return [data, null];
+    } catch (err) {
+      const message = err?.code === 'auth/popup-closed-by-user'
+        ? 'Google sign-in was closed before completion.'
+        : err?.message?.startsWith('Missing Firebase config')
+          ? 'Firebase configuration is incomplete. Update your environment variables to enable Google sign-in.'
+          : err?.message ?? 'Unable to sign in with Google';
+      setLoading(false);
+      setError(message);
+      return [null, message];
+    }
   }, [loadUser]);
 
   const logout = useCallback(() => {
@@ -70,6 +112,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
+    loginWithGoogle,
     logout,
     refresh: loadUser,
     isAuthenticated: Boolean(user),
@@ -82,7 +125,7 @@ export const AuthProvider = ({ children }) => {
 
       return user.role === roleOrRoles;
     },
-  }), [user, loading, error, login, logout, loadUser]);
+  }), [user, loading, error, login, loginWithGoogle, logout, loadUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

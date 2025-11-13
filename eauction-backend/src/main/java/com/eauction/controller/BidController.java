@@ -1,7 +1,7 @@
 package com.eauction.controller;
 
 import com.eauction.dto.BidDTO;
-import com.eauction.model.Bid;
+import com.eauction.dto.BidResponse;
 import com.eauction.service.BidService;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -25,19 +25,19 @@ public class BidController {
 
     @PostMapping
     @PreAuthorize("hasRole('BUYER')")
-    public ResponseEntity<Bid> placeBid(@Valid @RequestBody BidDTO request) {
-        Bid bid = bidService.placeBid(request);
+    public ResponseEntity<BidResponse> placeBid(@Valid @RequestBody BidDTO request) {
+        BidResponse bid = bidService.placeBid(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(bid);
     }
 
     @GetMapping("/item/{itemId}")
-    public ResponseEntity<List<Bid>> bidsForItem(@PathVariable String itemId) {
+    public ResponseEntity<List<BidResponse>> bidsForItem(@PathVariable String itemId) {
         return ResponseEntity.ok(bidService.getBidsForItem(itemId));
     }
 
     @GetMapping("/user")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Bid>> myBids() {
+    public ResponseEntity<List<BidResponse>> myBids() {
         return ResponseEntity.ok(bidService.getMyBids());
     }
 }

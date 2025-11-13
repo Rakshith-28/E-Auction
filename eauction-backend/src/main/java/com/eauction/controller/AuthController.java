@@ -1,5 +1,6 @@
 package com.eauction.controller;
 
+import com.eauction.dto.GoogleLoginRequest;
 import com.eauction.dto.JwtResponse;
 import com.eauction.dto.LoginRequest;
 import com.eauction.dto.RegisterRequest;
@@ -33,6 +34,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/google-login")
+    public ResponseEntity<JwtResponse> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        return ResponseEntity.ok(authService.loginWithGoogle(request));
     }
 
     @GetMapping("/me")

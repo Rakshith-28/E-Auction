@@ -4,6 +4,8 @@ import static com.eauction.exception.CustomExceptions.BadRequestException;
 import static com.eauction.exception.CustomExceptions.ResourceNotFoundException;
 
 import com.eauction.dto.BidDTO;
+import com.eauction.dto.BidResponse;
+import com.eauction.dto.ItemSummary;
 import com.eauction.model.Auction;
 import com.eauction.model.Bid;
 import com.eauction.model.BidStatus;
@@ -31,7 +33,7 @@ public class BidService {
     private final UserService userService;
     private final NotificationService notificationService;
 
-    public Bid placeBid(BidDTO bidRequest) {
+    public BidResponse placeBid(BidDTO bidRequest) {
         Assert.notNull(bidRequest.itemId(), "Item id is required");
         Assert.notNull(bidRequest.bidAmount(), "Bid amount is required");
         User bidder = userService.getCurrentUser();
@@ -72,16 +74,25 @@ public class BidService {
         }
 
         notifyParticipants(item, bidder);
-        return savedBid;
+        return BidResponse.from(savedBid, ItemSummary.from(item));
     }
 
-    public List<Bid> getBidsForItem(String itemId) {
-        return bidRepository.findByItemIdOrderByBidAmountDesc(itemId);
+    public List<BidResponse> getBidsForItem(String itemId) {
+        return bidRepository.findByItemIdOrderByBidAmountDesc(itemId)
+                .stream()
+                .map(bid -> BidResponse.from(bid))
+                .toList();
     }
 
-    public List<Bid> getMyBids() {
+    public List<BidResponse> getMyBids() {
         User user = userService.getCurrentUser();
-        return bidRepository.findByBidderId(user.getId());
+        return bidRepository.findByBidderIdOrderByBidTimeDesc(user.getId())
+                .stream()
+                .map(bid -> {
+                    Item item = itemRepository.findById(bid.getItemId()).orElse(null);
+                    return BidResponse.from(bid, ItemSummary.from(item));
+                })
+                .toList();
     }
 
     private void notifyParticipants(Item item, User bidder) {

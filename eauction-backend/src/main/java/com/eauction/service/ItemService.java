@@ -100,9 +100,27 @@ public class ItemService {
         return itemRepository.findAll(pageable);
     }
 
+    public Page<Item> getItemsByStatus(ItemStatus status, Pageable pageable) {
+        return itemRepository.findByStatus(status, pageable);
+    }
+
     public Page<Item> getItemsBySeller(Pageable pageable) {
         User seller = userService.getCurrentUser();
         return itemRepository.findBySellerId(seller.getId(), pageable);
+    }
+
+    public Page<Item> getItemsBySeller(String sellerId, Pageable pageable) {
+        return itemRepository.findBySellerId(sellerId, pageable);
+    }
+
+    public Page<Item> getActiveItems(Pageable pageable) {
+        Instant now = Instant.now();
+        return itemRepository.findByStatusAndAuctionEndTimeAfter(ItemStatus.ACTIVE, now, pageable);
+    }
+
+    public List<Item> getActiveItems() {
+        Instant now = Instant.now();
+        return itemRepository.findByStatusAndAuctionEndTimeAfter(ItemStatus.ACTIVE, now);
     }
 
     public List<Item> getMyItems() {

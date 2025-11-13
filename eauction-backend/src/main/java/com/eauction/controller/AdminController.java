@@ -1,9 +1,9 @@
 package com.eauction.controller;
 
 import com.eauction.dto.AdminDashboardResponse;
+import com.eauction.dto.AuctionResponse;
 import com.eauction.dto.ItemStatusUpdateRequest;
 import com.eauction.dto.UserResponse;
-import com.eauction.model.Auction;
 import com.eauction.model.Item;
 import com.eauction.service.AuctionService;
 import com.eauction.service.ItemService;
@@ -57,7 +57,7 @@ public class AdminController {
     }
 
     @PostMapping("/auctions/{id}/close")
-    public ResponseEntity<Auction> closeAuction(@PathVariable String id) {
+    public ResponseEntity<AuctionResponse> closeAuction(@PathVariable String id) {
         return ResponseEntity.ok(auctionService.closeAuctionManually(id));
     }
 

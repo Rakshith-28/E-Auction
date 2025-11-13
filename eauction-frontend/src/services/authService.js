@@ -15,6 +15,20 @@ export const login = async (credentials) => {
   return [data, null];
 };
 
+export const loginWithGoogle = async (idToken) => {
+  const [data, error] = await handleRequest(apiClient.post('/auth/google-login', { idToken }));
+
+  if (!data || error) {
+    return [null, error ?? 'Unable to login with Google'];
+  }
+
+  if (data.token) {
+    setToken(data.token);
+  }
+
+  return [data, null];
+};
+
 export const register = (payload) => handleRequest(apiClient.post('/auth/register', payload));
 
 export const fetchProfile = () => handleRequest(apiClient.get('/users/profile'));

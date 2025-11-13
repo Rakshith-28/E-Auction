@@ -42,6 +42,10 @@ const AuctionDetailsPage = () => {
   const handleBidSubmit = async (event) => {
     event.preventDefault();
     setBidError(null);
+    if (!auction?.item?.id) {
+      setBidError('Item information is unavailable for this auction.');
+      return;
+    }
     const nextBid = Number.parseFloat(bidAmount);
 
     if (Number.isNaN(nextBid) || nextBid <= minimumBid) {
@@ -50,7 +54,10 @@ const AuctionDetailsPage = () => {
     }
 
     setPlacingBid(true);
-    const [, placeBidError] = await placeBid({ auctionId: id, amount: nextBid });
+    const [, placeBidError] = await placeBid({
+      itemId: auction.item.id,
+      bidAmount: nextBid,
+    });
     setPlacingBid(false);
 
     if (placeBidError) {
@@ -91,13 +98,14 @@ const AuctionDetailsPage = () => {
     );
   }
 
-  const { item, bids = [] } = auction;
+  const item = auction.item;
+  const bids = auction.bids ?? [];
 
   return (
     <PageContainer
       title={item?.title ?? 'Auction item'}
       subtitle={item?.description}
-      actions={item?.status === 'ACTIVE' ? (
+      actions={auction.status === 'ACTIVE' ? (
         <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
           Active auction
         </span>

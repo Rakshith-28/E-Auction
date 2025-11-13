@@ -19,5 +19,5 @@ body {
 }
 
 a {
-  @apply text-primary font-medium hover:text-primary-dark transition-colors;
+  @apply text-primary-600 font-medium hover:text-primary-700 transition-colors;
 }

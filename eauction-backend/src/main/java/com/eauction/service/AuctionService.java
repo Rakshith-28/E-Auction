@@ -3,6 +3,9 @@ package com.eauction.service;
 import static com.eauction.exception.CustomExceptions.BadRequestException;
 import static com.eauction.exception.CustomExceptions.ResourceNotFoundException;
 
+import com.eauction.dto.AuctionResponse;
+import com.eauction.dto.BidResponse;
+import com.eauction.dto.ItemSummary;
 import com.eauction.model.Auction;
 import com.eauction.model.AuctionStatus;
 import com.eauction.model.Bid;
@@ -97,12 +100,16 @@ public class AuctionService {
         return auction;
     }
 
-    public Page<Auction> getAllAuctions(Pageable pageable) {
-        return auctionRepository.findAll(pageable);
+    public Page<AuctionResponse> getAllAuctions(Pageable pageable) {
+        return auctionRepository.findAll(pageable)
+                .map(auction -> toAuctionResponse(auction, false));
     }
 
-    public List<Auction> getActiveAuctions() {
-        return auctionRepository.findByStatus(AuctionStatus.ACTIVE);
+    public List<AuctionResponse> getActiveAuctions() {
+        return auctionRepository.findByStatus(AuctionStatus.ACTIVE)
+                .stream()
+                .map(auction -> toAuctionResponse(auction, false))
+                .toList();
     }
 
     public long countActiveAuctions() {
@@ -117,18 +124,20 @@ public class AuctionService {
                 .sum();
     }
 
-    public Auction getAuctionById(String id) {
-        return auctionRepository.findById(id)
+    public AuctionResponse getAuctionById(String id) {
+        Auction auction = auctionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found"));
+        return toAuctionResponse(auction, true);
     }
 
-    public Auction closeAuctionManually(String auctionId) {
+    public AuctionResponse closeAuctionManually(String auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found"));
         if (auction.getStatus() == AuctionStatus.ENDED) {
             throw new BadRequestException("Auction already closed");
         }
-        return finalizeAuction(auction);
+        Auction finalized = finalizeAuction(auction);
+        return toAuctionResponse(finalized, true);
     }
 
     private void notifyAuctionParticipants(Item item, Auction auction, Bid winningBid) {
@@ -179,5 +188,19 @@ public class AuctionService {
         User buyer = userRepository.findById(winningBid.getBidderId()).orElse(null);
         String buyerName = buyer != null ? buyer.getName() : "the winning bidder";
         return "Your item " + item.getTitle() + " sold to " + buyerName + " for $" + winningBid.getBidAmount();
+    }
+
+    private AuctionResponse toAuctionResponse(Auction auction, boolean includeBids) {
+        Item item = itemRepository.findById(auction.getItemId())
+                .orElseThrow(() -> new ResourceNotFoundException("Item not found"));
+        ItemSummary itemSummary = ItemSummary.from(item);
+        Double currentBid = item.getCurrentBid();
+        List<BidResponse> bidResponses = includeBids
+                ? bidRepository.findByItemIdOrderByBidAmountDesc(item.getId())
+                .stream()
+                .map(BidResponse::from)
+                .toList()
+                : List.of();
+        return AuctionResponse.from(auction, itemSummary, currentBid, bidResponses);
     }
 }

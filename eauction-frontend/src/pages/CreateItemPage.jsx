@@ -29,10 +29,14 @@ const CreateItemPage = () => {
     setError(null);
     setLoading(true);
 
+    const startTime = formState.auctionStartTime
+      ? new Date(formState.auctionStartTime).toISOString()
+      : new Date().toISOString();
+
     const payload = {
       ...formState,
       minimumBid: Number.parseFloat(formState.minimumBid),
-      auctionStartTime: formState.auctionStartTime ? new Date(formState.auctionStartTime).toISOString() : null,
+      auctionStartTime: startTime,
       auctionEndTime: formState.auctionEndTime ? new Date(formState.auctionEndTime).toISOString() : null,
     };
 
@@ -54,7 +58,7 @@ const CreateItemPage = () => {
     }
 
     if (item?.id) {
-      navigate(`/auctions/${item.auctionId ?? ''}`);
+      navigate(`/auctions/${item.id}`);
     } else {
       navigate('/items/mine');
     }

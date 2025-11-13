@@ -2,6 +2,12 @@ import { apiClient, handleRequest } from './api';
 
 export const getItems = (params = {}) => handleRequest(apiClient.get('/items', { params }));
 
+export const getActiveItems = (params = {}) => handleRequest(apiClient.get('/items/active', { params }));
+
+export const getItemsByStatus = (status, params = {}) => handleRequest(apiClient.get(`/items/status/${status}`, { params }));
+
+export const getItemsBySeller = (sellerId, params = {}) => handleRequest(apiClient.get(`/items/seller/${sellerId}`, { params }));
+
 export const getItem = (id) => handleRequest(apiClient.get(`/items/${id}`));
 
 export const createItem = (payload) => handleRequest(apiClient.post('/items', payload));

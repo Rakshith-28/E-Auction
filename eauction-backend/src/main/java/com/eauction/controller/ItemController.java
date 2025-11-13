@@ -2,6 +2,7 @@ package com.eauction.controller;
 
 import com.eauction.dto.ItemDTO;
 import com.eauction.model.Item;
+import com.eauction.model.ItemStatus;
 import com.eauction.service.ItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -32,9 +33,24 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getItems(pageable));
     }
 
+    @GetMapping("/active")
+    public ResponseEntity<Page<Item>> listActiveItems(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(itemService.getActiveItems(pageable));
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<Page<Item>> listByStatus(@PathVariable ItemStatus status, @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(itemService.getItemsByStatus(status, pageable));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<Item> getItem(@PathVariable String id) {
         return ResponseEntity.ok(itemService.getItem(id));
+    }
+
+    @GetMapping("/seller/{sellerId}")
+    public ResponseEntity<Page<Item>> getItemsBySeller(@PathVariable String sellerId, @PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(itemService.getItemsBySeller(sellerId, pageable));
     }
 
     @PostMapping

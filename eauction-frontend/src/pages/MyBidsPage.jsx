@@ -50,7 +50,7 @@ const MyBidsPage = () => {
           {bids.map((bid) => (
             <article key={bid.id} className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:flex-row md:items-center">
               <div>
-                <h2 className="text-lg font-semibold text-slate-900">{bid.auction?.item?.title ?? 'Auction'}</h2>
+                <h2 className="text-lg font-semibold text-slate-900">{bid.item?.title ?? 'Auction'}</h2>
                 <p className="mt-2 text-sm text-slate-600">
                   Bid amount:{' '}
                   <span className="font-semibold text-slate-900">

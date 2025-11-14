@@ -194,7 +194,7 @@ const RegisterPage = () => {
       address: formState.address.trim(),
     };
 
-    const [, registerError] = await registerRequest(payload);
+    const [data, registerError] = await registerRequest(payload);
     setLoading(false);
 
     if (registerError) {
@@ -205,7 +205,7 @@ const RegisterPage = () => {
     setToast({
       type: 'success',
       title: 'Account created',
-      message: 'Your premium profile is ready. Sign in to start bidding.',
+      message: 'Welcome to eAuction! Redirecting to your dashboard…',
     });
 
     setFormState(INITIAL_FORM_STATE);
@@ -213,8 +213,8 @@ const RegisterPage = () => {
       clearTimeout(redirectTimeoutRef.current);
     }
     redirectTimeoutRef.current = setTimeout(() => {
-      navigate('/login', { state: { registered: true } });
-    }, 800);
+      navigate('/dashboard', { replace: true });
+    }, 600);
   };
 
   const handleGoogleSignIn = async () => {

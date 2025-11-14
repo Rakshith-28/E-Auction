@@ -115,6 +115,14 @@ const Navbar = () => {
             </span>
           </button>
           {isAuthenticated && <NotificationBell />}
+          {isAuthenticated && (
+            <Link
+              to="/dashboard"
+              className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/60 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-600"
+            >
+              Dashboard
+            </Link>
+          )}
           {!isAuthenticated ? (
             <div className="hidden items-center gap-2 md:flex">
               <Link

@@ -1,30 +1,33 @@
 import { useEffect, useRef, useState } from 'react';
-import { getNotifications, markAsRead } from '../../services/notificationService.js';
+import { useNavigate } from 'react-router-dom';
+import { getNotifications, getUnreadCount, markAsRead, markAllRead, deleteNotification } from '../../services/notificationService.js';
 import { formatDateTime } from '../../utils/dateUtils.js';
 
 const NotificationBell = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
-  const unreadCount = notifications.filter((notification) => !notification.read).length;
   const containerRef = useRef(null);
+  const [unreadExternal, setUnreadExternal] = useState(0);
+  const unreadCountLocal = notifications.filter((n) => !n.read).length;
+  const unreadCount = unreadExternal || unreadCountLocal;
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      const [data, fetchError] = await getNotifications();
-
-      if (fetchError) {
-        setError(fetchError);
-      } else if (data) {
-        setNotifications(data);
-      }
-
+    let active = true;
+    const fetchAll = async () => {
+      const [pageData] = await getNotifications({ page: 0, size: 10 });
+      const [countData] = await getUnreadCount();
+      if (!active) return;
+      if (pageData) setNotifications(pageData.content ? pageData.content : pageData);
+      if (countData) setUnreadExternal(countData.count || 0);
       setLoading(false);
     };
-
-    fetchNotifications();
+    setLoading(true);
+    fetchAll();
+    const interval = setInterval(fetchAll, 30000);
+    return () => { active = false; clearInterval(interval); };
   }, []);
 
   useEffect(() => {
@@ -44,15 +47,12 @@ const NotificationBell = () => {
   }, [open]);
 
   const handleMarkAllRead = async () => {
-    const unread = notifications.filter((notification) => !notification.read);
-
-    if (unread.length === 0) return;
-
     try {
-      await Promise.all(unread.map((notification) => markAsRead(notification.id)));
-      setNotifications((prev) => prev.map((notification) => ({ ...notification, read: true })));
-    } catch (markError) {
-      setError(markError.message ?? 'Failed to update notifications');
+      await markAllRead();
+      setNotifications((prev) => prev.map(n => ({ ...n, read: true })));
+      setUnreadExternal(0);
+    } catch (e) {
+      setError(e.message || 'Failed to mark all read');
     }
   };
 
@@ -80,12 +80,7 @@ const NotificationBell = () => {
     <div ref={containerRef} className="relative">
       <button
         type="button"
-        onClick={() => {
-          if (unreadCount > 0) {
-            handleMarkAllRead();
-          }
-          setOpen((prev) => !prev);
-        }}
+        onClick={() => setOpen((prev) => !prev)}
         className="flex h-10 w-10 items-center justify-center rounded-full text-slate-600 transition hover:bg-slate-100"
         aria-label="Notifications"
       >
@@ -120,25 +115,55 @@ const NotificationBell = () => {
               <p className="px-4 py-6 text-center text-sm text-slate-500">No notifications yet.</p>
             ) : (
               notifications.map((notification) => (
-                <div key={notification.id} className="flex items-start gap-3 px-4 py-3">
-                  <span className={`mt-1 h-2 w-2 rounded-full ${notification.read ? 'bg-slate-300' : 'bg-indigo-500'}`} />
+                <div 
+                  key={notification.id} 
+                  className={`flex items-start gap-3 px-4 py-3 ${notification.actionUrl ? 'cursor-pointer hover:bg-slate-50' : ''}`}
+                  onClick={() => {
+                    if (notification.actionUrl) {
+                      navigate(notification.actionUrl);
+                      setOpen(false);
+                      if (!notification.read) handleMarkAsRead(notification.id);
+                    }
+                  }}
+                >
+                  <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${notification.read ? 'bg-slate-300' : 'bg-indigo-500'}`} />
                   <div className="flex-1 text-sm text-slate-600">
                     <p className="font-medium text-slate-900">{notification.title ?? 'Update'}</p>
                     <p className="mt-1 text-slate-600">{notification.message ?? notification.body}</p>
                     <p className="mt-2 text-xs text-slate-400">{formatDateTime(notification.createdAt)}</p>
                   </div>
-                  {!notification.read && (
-                    <button
-                      type="button"
-                      onClick={() => handleMarkAsRead(notification.id)}
-                      className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:border-indigo-200 hover:text-indigo-600"
-                    >
-                      Mark read
-                    </button>
-                  )}
+                  <div className="flex shrink-0 gap-1" onClick={(e) => e.stopPropagation()}>
+                    {!notification.read && (
+                      <button
+                        type="button"
+                        onClick={() => handleMarkAsRead(notification.id)}
+                        className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600 transition hover:border-indigo-200 hover:text-indigo-600"
+                      >
+                        ✓
+                      </button>
+                    )}
+                    {notification.read && (
+                      <button
+                        type="button"
+                        onClick={async () => { await deleteNotification(notification.id); setNotifications(prev => prev.filter(n => n.id !== notification.id)); }}
+                        className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-slate-400 transition hover:border-red-200 hover:text-red-600"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
+          </div>
+          <div className="border-t border-slate-100 px-4 py-2 text-center">
+            <button
+              type="button"
+              onClick={() => { navigate('/notifications'); setOpen(false); }}
+              className="text-xs font-semibold uppercase tracking-wide text-indigo-600 hover:text-indigo-700"
+            >
+              View All Notifications
+            </button>
           </div>
         </div>
       )}

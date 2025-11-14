@@ -29,7 +29,19 @@ export const loginWithGoogle = async (idToken) => {
   return [data, null];
 };
 
-export const register = (payload) => handleRequest(apiClient.post('/auth/register', payload));
+export const register = async (payload) => {
+  const [data, error] = await handleRequest(apiClient.post('/auth/register', payload));
+
+  if (!data || error) {
+    return [null, error ?? 'Unable to register'];
+  }
+
+  if (data.token) {
+    setToken(data.token);
+  }
+
+  return [data, null];
+};
 
 export const fetchProfile = () => handleRequest(apiClient.get('/users/profile'));
 

@@ -17,3 +17,7 @@ export const updateItem = (id, payload) => handleRequest(apiClient.put(`/items/$
 export const deleteItem = (id) => handleRequest(apiClient.delete(`/items/${id}`));
 
 export const getMyItems = () => handleRequest(apiClient.get('/items/mine'));
+
+export const getMyItemsPaged = (params = {}) => handleRequest(apiClient.get('/items/my-items', { params }));
+
+export const closeItem = (id) => handleRequest(apiClient.post(`/items/${id}/close`));

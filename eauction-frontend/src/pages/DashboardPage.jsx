@@ -1,54 +1,23 @@
-import { useState } from 'react';
-import { ShoppingBag, Store, User, Package, Gavel, TrendingUp } from 'lucide-react';
+import { Package, Gavel, TrendingUp, User, Store, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
+import Topbar from '../components/Dashboard/Topbar';
+import Sidebar from '../components/Dashboard/Sidebar';
 
 const ProfileDashboardPage = () => {
-  const { user, roles, isBuyer, isSeller } = useAuth();
-  const [activeSection, setActiveSection] = useState(isBuyer ? 'buy' : isSeller ? 'sell' : 'profile');
-
-  const sidebarItems = [
-    { id: 'buy', label: 'Buy', icon: ShoppingBag, show: isBuyer },
-    { id: 'sell', label: 'Sell', icon: Store, show: isSeller },
-    { id: 'profile', label: 'Profile', icon: User, show: true },
-  ].filter((item) => item.show);
+  const { user, isBuyer, isSeller } = useAuth();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface via-white to-primary-50">
+      <Topbar />
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-8">
-        {/* Left Sidebar */}
-        <aside className="w-64 shrink-0">
-          <div className="sticky top-24 space-y-2 rounded-2xl border border-white/60 bg-white/90 p-4 shadow-lg backdrop-blur">
-            <div className="mb-4 border-b border-slate-200 pb-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Dashboard</p>
-              <p className="mt-1 text-sm text-slate-700">Welcome, {user?.name}</p>
-            </div>
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeSection === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => setActiveSection(item.id)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold transition ${
-                    isActive
-                      ? 'bg-primary-500/10 text-primary-600 shadow-sm'
-                      : 'text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.label}
-                </button>
-              );
-            })}
-          </div>
-        </aside>
+        <Sidebar />
 
         {/* Main Content */}
-        <main className="flex-1">
-          {activeSection === 'buy' && isBuyer && <BuySection />}
-          {activeSection === 'sell' && isSeller && <SellSection />}
-          {activeSection === 'profile' && <ProfileSection />}
+        <main className="flex-1 pt-16">
+          {isBuyer && <BuySection />}
+          {isSeller && <SellSection />}
+          <ProfileSection />
         </main>
       </div>
     </div>
@@ -72,11 +41,11 @@ const BuySection = () => (
       <h2 className="text-lg font-semibold text-slate-900">Quick Actions</h2>
       <div className="mt-4 flex flex-wrap gap-3">
         <Link
-          to="/auctions"
+          to="/items"
           className="inline-flex items-center gap-2 rounded-full bg-primary-600 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-primary-700"
         >
           <ShoppingBag className="h-4 w-4" />
-          Browse Auctions
+          Browse Items
         </Link>
         <Link
           to="/bids"

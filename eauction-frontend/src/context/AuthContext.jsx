@@ -116,6 +116,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     refresh: loadUser,
     isAuthenticated: Boolean(user),
+    roles: user?.roles ?? [],
+    isBuyer: Array.isArray(user?.roles) ? user.roles.includes('BUYER') : false,
+    isSeller: Array.isArray(user?.roles) ? user.roles.includes('SELLER') : false,
     hasRole: (roleOrRoles) => {
       if (!user?.roles || user.roles.length === 0) return false;
 

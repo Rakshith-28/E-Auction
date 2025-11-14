@@ -28,7 +28,7 @@ const INITIAL_FORM_STATE = {
   email: '',
   password: '',
   confirmPassword: '',
-  role: 'BUYER',
+  roles: ['BUYER'],
   phone: '',
   address: '',
   terms: false,
@@ -126,7 +126,14 @@ const RegisterPage = () => {
   };
 
   const handleAccountTypeSelect = (value) => {
-    setFormState((prev) => ({ ...prev, role: value }));
+    setFormState((prev) => {
+      const currentRoles = prev.roles || [];
+      const isSelected = currentRoles.includes(value);
+      const updatedRoles = isSelected
+        ? currentRoles.filter((r) => r !== value)
+        : [...currentRoles, value];
+      return { ...prev, roles: updatedRoles.length ? updatedRoles : ['BUYER'] };
+    });
   };
 
   const validate = () => {
@@ -182,7 +189,7 @@ const RegisterPage = () => {
       name: formState.name.trim(),
       email: formState.email.trim().toLowerCase(),
       password: formState.password,
-      role: formState.role,
+      roles: formState.roles && formState.roles.length ? formState.roles : ['BUYER'],
       phone: formState.phone.trim(),
       address: formState.address.trim(),
     };
@@ -229,7 +236,7 @@ const RegisterPage = () => {
       clearTimeout(redirectTimeoutRef.current);
     }
     redirectTimeoutRef.current = setTimeout(() => {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }, 600);
   };
 
@@ -478,29 +485,35 @@ const RegisterPage = () => {
               </div>
 
               <div className="space-y-4">
-                <p className="text-sm font-semibold text-slate-700">Account type</p>
+                <p className="text-sm font-semibold text-slate-700">Account type (select one or more)</p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   {ACCOUNT_TYPES.map(({ value, title, description, icon: Icon }) => {
-                    const isActive = formState.role === value;
+                    const isSelected = formState.roles.includes(value);
                     return (
-                      <button
+                      <label
                         key={value}
-                        type="button"
-                        onClick={() => handleAccountTypeSelect(value)}
-                        className={`flex h-full flex-col items-start gap-3 rounded-2xl border px-5 py-5 text-left transition focus:outline-none focus:ring-4 focus:ring-primary-100 ${
-                          isActive
+                        className={`flex h-full cursor-pointer flex-col gap-3 rounded-2xl border px-5 py-5 transition focus-within:outline-none focus-within:ring-4 focus-within:ring-primary-100 ${
+                          isSelected
                             ? 'border-primary-400 bg-primary-50/80 text-primary-900 shadow-[0_18px_40px_rgba(124,58,237,0.32)]'
                             : 'border-white/60 bg-white/70 text-slate-700 shadow-[0_12px_28px_rgba(15,23,42,0.08)] hover:border-primary-200 hover:bg-white'
                         }`}
                       >
-                        <span className={`rounded-full p-3 ${isActive ? 'bg-primary-500/20 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
-                          <Icon className="h-5 w-5" />
-                        </span>
-                        <div className="space-y-1">
+                        <div className="flex items-start gap-3">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => handleAccountTypeSelect(value)}
+                            className="mt-1 h-5 w-5 rounded border-slate-300 text-primary-500 focus:ring-primary-200"
+                          />
+                          <span className={`rounded-full p-3 ${isSelected ? 'bg-primary-500/20 text-primary-600' : 'bg-slate-100 text-slate-500'}`}>
+                            <Icon className="h-5 w-5" />
+                          </span>
+                        </div>
+                        <div className="ml-8 space-y-1">
                           <p className="text-base font-semibold">{title}</p>
                           <p className="text-xs text-slate-500">{description}</p>
                         </div>
-                      </button>
+                      </label>
                     );
                   })}
                 </div>

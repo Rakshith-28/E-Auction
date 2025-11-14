@@ -3,12 +3,13 @@ package com.eauction.dto;
 import com.eauction.model.Role;
 import com.eauction.model.User;
 import java.time.Instant;
+import java.util.List;
 
 public record UserResponse(
         String id,
         String name,
         String email,
-        Role role,
+        List<Role> roles,
         String phone,
         String address,
         Instant createdAt,
@@ -19,7 +20,7 @@ public record UserResponse(
                 user.getId(),
                 user.getName(),
                 user.getEmail(),
-                user.getRole(),
+                user.getRoles(),
                 user.getPhone(),
                 user.getAddress(),
                 user.getCreatedAt(),

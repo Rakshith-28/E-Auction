@@ -60,6 +60,6 @@ public class UserService {
     }
 
     public boolean isAdmin(User user) {
-        return user.getRole() == Role.ADMIN;
+        return user.getRoles() != null && user.getRoles().contains(Role.ADMIN);
     }
 }

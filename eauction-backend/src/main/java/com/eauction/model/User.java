@@ -35,7 +35,7 @@ public class User implements UserDetails {
     @JsonIgnore
     private String password;
 
-    private Role role;
+    private List<Role> roles;
 
     private String phone;
 
@@ -49,7 +49,12 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        if (roles == null || roles.isEmpty()) {
+            return List.of(new SimpleGrantedAuthority("ROLE_BUYER"));
+        }
+        return roles.stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                .toList();
     }
 
     @Override

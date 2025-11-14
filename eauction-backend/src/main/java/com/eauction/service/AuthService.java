@@ -22,6 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -40,12 +41,15 @@ public class AuthService {
         if (userRepository.existsByEmail(request.email())) {
             throw new BadRequestException("Email already registered");
         }
-        Role role = request.role();
+        List<Role> roles = request.roles();
+        if (roles == null || roles.isEmpty()) {
+            roles = List.of(Role.BUYER);
+        }
         User user = User.builder()
                 .name(request.name())
                 .email(request.email().toLowerCase())
                 .password(passwordEncoder.encode(request.password()))
-                .role(role)
+                .roles(roles)
                 .phone(request.phone())
                 .address(request.address())
                 .build();
@@ -62,13 +66,21 @@ public class AuthService {
     }
 
     public JwtResponse loginWithGoogle(GoogleLoginRequest request) {
+        log.info("Attempting Google login with token length: {}", request.idToken() != null ? request.idToken().length() : "null");
+        
         FirebaseToken firebaseToken;
         try {
+            log.debug("Verifying Firebase ID token...");
             firebaseToken = FirebaseAuth.getInstance().verifyIdToken(request.idToken());
+            log.info("Successfully verified Firebase token for user: {}", firebaseToken.getEmail());
         } catch (FirebaseAuthException e) {
-            log.warn("Failed to verify Google ID token: {}", e.getMessage(), e);
+            log.error("Failed to verify Google ID token. Error code: {}, Message: {}", 
+                e.getAuthErrorCode(), e.getMessage(), e);
             String reason = e.getAuthErrorCode() != null ? e.getAuthErrorCode().name() : e.getMessage();
             throw new BadRequestException("Unable to verify Google token: " + reason);
+        } catch (Exception e) {
+            log.error("Unexpected error during Firebase token verification", e);
+            throw new BadRequestException("Unexpected error verifying Google token: " + e.getMessage());
         }
 
         String email = firebaseToken.getEmail();
@@ -80,6 +92,13 @@ public class AuthService {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
             user = provisionGoogleUser(firebaseToken, email);
+        }
+
+        // Ensure roles are set (defensive check)
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            log.warn("User {} has null or empty roles, setting to BUYER", email);
+            user.setRoles(List.of(Role.BUYER));
+            user = userRepository.save(user);
         }
 
         String token = jwtTokenProvider.generateToken(user);
@@ -104,7 +123,7 @@ public class AuthService {
                 .name(displayName)
                 .email(email)
                 .password(passwordEncoder.encode(UUID.randomUUID().toString()))
-                .role(Role.BUYER)
+                .roles(List.of(Role.BUYER))
                 .build();
         User savedUser = userRepository.save(user);
         log.info("Provisioned new user {} via Google sign-in", email);

@@ -113,7 +113,7 @@ const LoginPage = () => {
       sessionStorage.setItem('eauction_last_login', new Date().toISOString());
     }
 
-    const redirectTo = location.state?.from?.pathname ?? '/';
+    const redirectTo = location.state?.from?.pathname ?? '/profile';
     navigate(redirectTo, { replace: true });
   };
 
@@ -142,7 +142,7 @@ const LoginPage = () => {
       sessionStorage.setItem('eauction_last_login', new Date().toISOString());
     }
 
-    const redirectTo = location.state?.from?.pathname ?? '/';
+    const redirectTo = location.state?.from?.pathname ?? '/profile';
     navigate(redirectTo, { replace: true });
   };
 

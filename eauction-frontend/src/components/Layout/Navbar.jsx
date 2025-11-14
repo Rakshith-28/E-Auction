@@ -12,6 +12,7 @@ import { useAuth } from '../../hooks/useAuth';
 import NotificationBell from '../Notifications/NotificationBell';
 
 const NAV_LINKS = [
+  { to: '/', label: 'Home' },
   { to: '/auctions', label: 'Auctions' },
   { to: '/items/create', label: 'Sell Item', roles: ['SELLER', 'ADMIN'] },
   { to: '/admin', label: 'Admin', roles: ['ADMIN'] },
@@ -21,6 +22,7 @@ const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [cartModalOpen, setCartModalOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -96,8 +98,16 @@ const Navbar = () => {
         <div className="flex items-center gap-3">
           <button
             type="button"
+            onClick={() => {
+              if (!isAuthenticated) {
+                setCartModalOpen(true);
+              } else {
+                // Navigate to cart page when implemented
+                console.log('Navigate to cart');
+              }
+            }}
             className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/60 text-slate-600 transition hover:border-primary-200 hover:text-primary-600 md:flex"
-            aria-label="Future cart feature"
+            aria-label="Shopping cart"
           >
             <ShoppingCart className="h-5 w-5" />
             <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-white">
@@ -144,7 +154,7 @@ const Navbar = () => {
                     <User className="h-4 w-4" />
                     Profile
                   </Link>
-                  {user?.role === 'SELLER' && (
+                  {user?.roles?.includes('SELLER') && (
                     <Link
                       to="/items/mine"
                       className="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-600 transition hover:bg-primary-500/10 hover:text-primary-600"
@@ -153,7 +163,7 @@ const Navbar = () => {
                       My Items
                     </Link>
                   )}
-                  {user?.role === 'BUYER' && (
+                  {user?.roles?.includes('BUYER') && (
                     <Link
                       to="/bids"
                       className="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-600 transition hover:bg-primary-500/10 hover:text-primary-600"
@@ -176,6 +186,58 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      {/* Cart Login Modal */}
+      {cartModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
+          onClick={() => setCartModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-md animate-fadeIn rounded-3xl border border-white/60 bg-white p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setCartModalOpen(false)}
+              className="absolute right-4 top-4 rounded-full p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+              aria-label="Close modal"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center">
+              <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-primary-500 to-secondary">
+                <ShoppingCart className="h-8 w-8 text-white" />
+              </div>
+
+              <h3 className="mb-2 text-2xl font-semibold text-slate-900">Login Required</h3>
+              <p className="mb-6 text-sm text-slate-600">
+                You need to be logged in to view your cart. Please log in or create an account to continue.
+              </p>
+
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  to="/login"
+                  onClick={() => setCartModalOpen(false)}
+                  className="flex-1 rounded-full bg-gradient-to-r from-primary-500 to-secondary px-6 py-3 text-sm font-semibold text-white shadow-lg transition hover:shadow-xl"
+                >
+                  Login
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setCartModalOpen(false)}
+                  className="flex-1 rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-600"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

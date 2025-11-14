@@ -89,7 +89,7 @@ const AdminDashboardPage = () => {
               <tr>
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Role</th>
+                <th className="px-4 py-3">Roles</th>
                 <th className="px-4 py-3">Joined</th>
                 <th className="px-4 py-3" aria-label="User actions" />
               </tr>
@@ -99,7 +99,11 @@ const AdminDashboardPage = () => {
                 <tr key={user.id}>
                   <td className="px-4 py-3 font-medium text-slate-900">{user.name}</td>
                   <td className="px-4 py-3">{user.email}</td>
-                  <td className="px-4 py-3">{user.role}</td>
+                  <td className="px-4 py-3">
+                    {Array.isArray(user.roles) && user.roles.length
+                      ? user.roles.join(', ')
+                      : user.role ?? '—'}
+                  </td>
                   <td className="px-4 py-3">{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
                   <td className="px-4 py-3">
                     {currentUser?.id === user.id ? (

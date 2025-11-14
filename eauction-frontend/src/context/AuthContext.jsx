@@ -117,13 +117,13 @@ export const AuthProvider = ({ children }) => {
     refresh: loadUser,
     isAuthenticated: Boolean(user),
     hasRole: (roleOrRoles) => {
-      if (!user?.role) return false;
+      if (!user?.roles || user.roles.length === 0) return false;
 
       if (Array.isArray(roleOrRoles)) {
-        return roleOrRoles.includes(user.role);
+        return roleOrRoles.some(role => user.roles.includes(role));
       }
 
-      return user.role === roleOrRoles;
+      return user.roles.includes(roleOrRoles);
     },
   }), [user, loading, error, login, loginWithGoogle, logout, loadUser]);
 

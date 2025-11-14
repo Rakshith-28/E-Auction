@@ -60,8 +60,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
-        log.error("Unhandled exception", ex);
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong");
+        log.error("Unhandled exception: {} - {}", ex.getClass().getName(), ex.getMessage(), ex);
+        String detailedMessage = "Something went wrong";
+        
+        // Include more details in development
+        if (ex.getCause() != null) {
+            log.error("Caused by: {} - {}", ex.getCause().getClass().getName(), ex.getCause().getMessage());
+            detailedMessage = "Something went wrong: " + ex.getMessage();
+        }
+        
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, detailedMessage);
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String message) {

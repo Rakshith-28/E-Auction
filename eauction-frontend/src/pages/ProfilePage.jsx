@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { useAuth } from '../hooks/useAuth.js';
-import { updateProfile } from '../services/userService.js';
+import { requestSellerRole, updateProfile } from '../services/userService.js';
 
 const ProfilePage = () => {
-  const { user, refresh, loading } = useAuth();
+  const { user, roles = [], refresh, loading, hasRole } = useAuth();
   const [formState, setFormState] = useState({ name: '', phone: '', address: '' });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [roleLoading, setRoleLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -45,6 +46,24 @@ const ProfilePage = () => {
     setMessage('Profile updated successfully.');
   };
 
+  const handleSellerUpgrade = async () => {
+    setRoleLoading(true);
+    setError(null);
+    setMessage(null);
+
+    const [, upgradeError] = await requestSellerRole();
+
+    setRoleLoading(false);
+
+    if (upgradeError) {
+      setError(upgradeError);
+      return;
+    }
+
+    await refresh();
+    setMessage('Seller capabilities enabled. You can now list items for auction.');
+  };
+
   if (loading) {
     return (
       <PageContainer title="Profile">
@@ -64,6 +83,38 @@ const ProfilePage = () => {
             Account email
           </label>
           <p className="mt-1 text-sm text-slate-700">{user?.email}</p>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Roles
+          </label>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {roles.length ? (
+              roles.map((role) => (
+                <span
+                  key={role}
+                  className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-600"
+                >
+                  {role}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-slate-500">No roles assigned</span>
+            )}
+          </div>
+          {!hasRole(['SELLER', 'ADMIN']) && (
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleSellerUpgrade}
+                disabled={roleLoading}
+                className="inline-flex items-center justify-center rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {roleLoading ? 'Requesting seller access…' : 'Become a seller'}
+              </button>
+            </div>
+          )}
         </div>
 
         <div>

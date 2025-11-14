@@ -27,10 +27,11 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(UserDetails userDetails) {
-        return buildToken(Map.of("role", userDetails.getAuthorities().stream()
-                .findFirst()
+        String roles = userDetails.getAuthorities().stream()
                 .map(Object::toString)
-                .orElse("")), userDetails);
+                .reduce((a, b) -> a + "," + b)
+                .orElse("ROLE_BUYER");
+        return buildToken(Map.of("roles", roles), userDetails);
     }
 
     public String buildToken(Map<String, Object> extraClaims, UserDetails userDetails) {

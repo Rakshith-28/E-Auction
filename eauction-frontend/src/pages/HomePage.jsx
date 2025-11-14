@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { UserPlus, Search, Trophy } from 'lucide-react';
 
 const HomePage = () => (
   <div className="bg-gradient-to-b from-white via-surface to-white">
@@ -39,6 +40,91 @@ const HomePage = () => (
                 <p className="mt-1 text-slate-500">Designed to streamline every auction workflow.</p>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* How It Works Section */}
+    <section className="mx-auto w-full max-w-6xl px-4 py-12">
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-indigo-100 md:p-10">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
+            How It Works
+          </h2>
+          <p className="mt-3 text-base text-slate-600">
+            Get started in three simple steps
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-6 md:grid-cols-3">
+          {/* Step 1: Create Account */}
+          <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-indigo-100">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 opacity-50 blur-2xl transition-all duration-300 group-hover:opacity-100" />
+            
+            <div className="relative">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-200">
+                <UserPlus className="h-6 w-6 text-white" />
+              </div>
+              
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-xs font-bold text-indigo-600">Step 1</span>
+              </div>
+              
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                Create Account
+              </h3>
+              
+              <p className="text-xs leading-relaxed text-slate-600">
+                Sign up as a buyer or seller in seconds. Choose your role and start your auction journey.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 2: Browse & Bid */}
+          <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-indigo-100">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 opacity-50 blur-2xl transition-all duration-300 group-hover:opacity-100" />
+            
+            <div className="relative">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-200">
+                <Search className="h-6 w-6 text-white" />
+              </div>
+              
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-xs font-bold text-indigo-600">Step 2</span>
+              </div>
+              
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                Browse & Bid
+              </h3>
+              
+              <p className="text-xs leading-relaxed text-slate-600">
+                Explore active auctions and place bids on items you love. Track bids in real-time.
+              </p>
+            </div>
+          </div>
+
+          {/* Step 3: Win & Complete */}
+          <div className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:shadow-indigo-100">
+            <div className="absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br from-indigo-100 to-indigo-50 opacity-50 blur-2xl transition-all duration-300 group-hover:opacity-100" />
+            
+            <div className="relative">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-200">
+                <Trophy className="h-6 w-6 text-white" />
+              </div>
+              
+              <div className="mb-2 flex items-center gap-2">
+                <span className="text-xs font-bold text-indigo-600">Step 3</span>
+              </div>
+              
+              <h3 className="mb-2 text-lg font-semibold text-slate-900">
+                Win & Complete
+              </h3>
+              
+              <p className="text-xs leading-relaxed text-slate-600">
+                Win auctions, receive notifications, and complete secure transactions seamlessly.
+              </p>
+            </div>
           </div>
         </div>
       </div>

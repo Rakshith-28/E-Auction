@@ -410,7 +410,7 @@ const EditProfilePage = () => {
           </Card>
 
           {/* Danger Zone Card */}
-          <Card title="Danger Zone" className="border-2 border-red-200">
+          <Card title="Permanently Delete Account" className="border-2 border-red-200">
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="h-5 w-5 text-red-600" />

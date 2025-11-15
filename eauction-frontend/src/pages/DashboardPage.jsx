@@ -1,7 +1,6 @@
 import { Package, Gavel, TrendingUp, User, Store, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
-import Topbar from '../components/Dashboard/Topbar';
 import Sidebar from '../components/Dashboard/Sidebar';
 
 const ProfileDashboardPage = () => {
@@ -9,12 +8,11 @@ const ProfileDashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface via-white to-primary-50">
-      <Topbar />
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-8">
         <Sidebar />
 
         {/* Main Content */}
-        <main className="flex-1 pt-16">
+        <main className="flex-1">
           {isBuyer && <BuySection />}
           {isSeller && <SellSection />}
           <ProfileSection />

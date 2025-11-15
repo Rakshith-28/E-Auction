@@ -13,9 +13,11 @@ import NotificationBell from '../Notifications/NotificationBell';
 import { useCart } from '../../context/CartContext';
 
 const getNavLinks = (isAuthenticated, userRoles) => {
-  const baseLinks = [
-    { to: '/', label: 'Home' },
-  ];
+  const baseLinks = [];
+
+  if (!isAuthenticated) {
+    baseLinks.push({ to: '/', label: 'Home' });
+  }
 
   if (isAuthenticated) {
     baseLinks.push({ to: '/dashboard', label: 'Dashboard' });
@@ -24,8 +26,6 @@ const getNavLinks = (isAuthenticated, userRoles) => {
   baseLinks.push({ to: '/auctions', label: 'Auctions' });
 
   if (isAuthenticated) {
-    baseLinks.push({ to: '/help', label: 'Help' });
-
     if (userRoles?.includes('BUYER')) {
       baseLinks.push({ to: '/bids', label: 'My Bids' });
     }
@@ -37,6 +37,10 @@ const getNavLinks = (isAuthenticated, userRoles) => {
 
   if (userRoles?.includes('ADMIN')) {
     baseLinks.push({ to: '/admin', label: 'Admin' });
+  }
+
+  if (isAuthenticated) {
+    baseLinks.push({ to: '/help', label: 'Help' });
   }
 
   return baseLinks;

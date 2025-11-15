@@ -42,6 +42,26 @@ public class User implements UserDetails {
 
     private String address;
 
+    private String bio;
+
+    private String profilePictureUrl;
+
+    private String coverPhotoUrl;
+
+    private java.time.LocalDate dateOfBirth;
+
+    private String gender;
+
+    private String city;
+
+    private String country;
+
+    private Boolean emailVerified;
+
+    private Instant lastActive;
+
+    private String accountStatus; // ACTIVE, DEACTIVATED, DELETED
+
     private java.util.List<String> watchlist;
     private java.util.List<String> cart;
 

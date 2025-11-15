@@ -8,4 +8,5 @@ public interface BidRepository extends MongoRepository<Bid, String> {
     List<Bid> findByItemIdOrderByBidAmountDesc(String itemId);
     List<Bid> findByBidderIdOrderByBidTimeDesc(String bidderId);
     long countByItemId(String itemId);
+    long countByBidderId(String bidderId);
 }

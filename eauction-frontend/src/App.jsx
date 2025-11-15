@@ -15,6 +15,8 @@ import MyBidsPage from './pages/MyBidsPage.jsx';
 import WonItemsPage from './pages/WonItemsPage.jsx';
 import BidHistoryPage from './pages/BidHistoryPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import ViewProfilePage from './pages/ViewProfilePage.jsx';
+import EditProfilePage from './pages/EditProfilePage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
@@ -36,7 +38,10 @@ const App = () => (
       <Route path="help" element={<HelpPage />} />
 
       <Route element={<ProtectedRoute />}> 
-        <Route path="profile" element={<ProfilePage />} />
+        <Route path="profile" element={<ViewProfilePage />} />
+        <Route path="profile/:userId" element={<ViewProfilePage />} />
+        <Route path="profile/edit" element={<EditProfilePage />} />
+        <Route path="settings" element={<EditProfilePage />} />
         <Route path="bids" element={<MyBidsPage />} />
         <Route path="my-bids" element={<MyBidsPage />} />
         <Route path="won-items" element={<WonItemsPage />} />

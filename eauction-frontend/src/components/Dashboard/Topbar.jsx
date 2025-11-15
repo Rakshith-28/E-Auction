@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Bell, ShoppingCart, Search, LogOut, User, Settings } from 'lucide-react';
+import { Bell, ShoppingCart, LogOut, User, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -15,16 +15,7 @@ const Topbar = () => {
           <span className="tracking-tight">eAuction</span>
         </Link>
 
-        <div className="hidden flex-1 items-center justify-center px-6 md:flex">
-          <div className="relative w-full max-w-xl">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search for items..."
-              className="w-full rounded-full border border-slate-200 bg-white px-9 py-2 text-sm text-slate-700 shadow focus:border-primary-300 focus:outline-none focus:ring-4 focus:ring-primary-100"
-            />
-          </div>
-        </div>
+        <div className="flex-1"></div>
 
         <div className="flex items-center gap-2">
           <button className="relative grid h-10 w-10 place-items-center rounded-full border border-white/60 bg-white/60 text-slate-600 transition hover:border-primary-200 hover:text-primary-600">

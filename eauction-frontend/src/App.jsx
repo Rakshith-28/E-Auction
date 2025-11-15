@@ -23,6 +23,7 @@ import ItemDetailsPage from './pages/ItemDetailsPage.jsx';
 import WatchlistPage from './pages/WatchlistPage.jsx';
 import NotificationCenterPage from './pages/NotificationCenterPage.jsx';
 import CartPage from './pages/CartPage.jsx';
+import HelpPage from './pages/HelpPage.jsx';
 
 const App = () => (
   <Routes>
@@ -32,6 +33,7 @@ const App = () => (
       <Route path="auctions/:id" element={<AuctionDetailsPage />} />
       <Route path="items" element={<BrowseItemsPage />} />
       <Route path="items/:id" element={<ItemDetailsPage />} />
+      <Route path="help" element={<HelpPage />} />
 
       <Route element={<ProtectedRoute />}> 
         <Route path="profile" element={<ProfilePage />} />
@@ -53,6 +55,7 @@ const App = () => (
         <Route path="sell/listings" element={<MyItemsPage />} />
         <Route path="sell/bids" element={<ReceivedBidsPage />} />
         <Route path="sell/sold" element={<SoldItemsPage />} />
+        <Route path="listings" element={<MyItemsPage />} />
       </Route>
 
       <Route element={<ProtectedRoute roles={['ADMIN']} />}>

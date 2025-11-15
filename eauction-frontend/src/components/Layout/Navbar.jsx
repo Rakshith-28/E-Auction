@@ -12,12 +12,35 @@ import { useAuth } from '../../hooks/useAuth';
 import NotificationBell from '../Notifications/NotificationBell';
 import { useCart } from '../../context/CartContext';
 
-const NAV_LINKS = [
-  { to: '/', label: 'Home' },
-  { to: '/auctions', label: 'Auctions' },
-  { to: '/items/create', label: 'Sell Item', roles: ['SELLER', 'ADMIN'] },
-  { to: '/admin', label: 'Admin', roles: ['ADMIN'] },
-];
+const getNavLinks = (isAuthenticated, userRoles) => {
+  const baseLinks = [
+    { to: '/', label: 'Home' },
+  ];
+
+  if (isAuthenticated) {
+    baseLinks.push({ to: '/dashboard', label: 'Dashboard' });
+  }
+
+  baseLinks.push({ to: '/auctions', label: 'Auctions' });
+
+  if (isAuthenticated) {
+    baseLinks.push({ to: '/help', label: 'Help' });
+
+    if (userRoles?.includes('BUYER')) {
+      baseLinks.push({ to: '/bids', label: 'My Bids' });
+    }
+
+    if (userRoles?.includes('SELLER')) {
+      baseLinks.push({ to: '/listings', label: 'My Listings' });
+    }
+  }
+
+  if (userRoles?.includes('ADMIN')) {
+    baseLinks.push({ to: '/admin', label: 'Admin' });
+  }
+
+  return baseLinks;
+};
 
 const Navbar = () => {
   const { isAuthenticated, user, logout } = useAuth();
@@ -33,7 +56,7 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const filteredLinks = NAV_LINKS.filter((link) => (!link.roles ? true : link.roles.includes(user?.role)));
+  const navLinks = getNavLinks(isAuthenticated, user?.roles);
 
   useEffect(() => {
     refreshCartCount();
@@ -62,9 +85,9 @@ const Navbar = () => {
         <nav
           className={`${
             menuOpen ? 'flex' : 'hidden'
-          } absolute left-0 top-full z-30 w-full flex-col gap-2 bg-white/95 px-4 pb-4 pt-2 shadow-lg backdrop-blur md:static md:flex md:w-auto md:flex-row md:items-center md:gap-8 md:bg-transparent md:p-0 md:shadow-none`}
+          } absolute left-0 top-full z-30 w-full flex-col gap-2 bg-white/95 px-4 pb-4 pt-2 shadow-lg backdrop-blur md:static md:flex md:w-auto md:flex-row md:items-center md:gap-4 md:bg-transparent md:p-0 md:shadow-none`}
         >
-          {filteredLinks.map((link) => (
+          {navLinks.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
@@ -120,14 +143,6 @@ const Navbar = () => {
             </span>
           </button>
           {isAuthenticated && <NotificationBell />}
-          {isAuthenticated && (
-            <Link
-              to="/dashboard"
-              className="hidden md:inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/60 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-600"
-            >
-              Dashboard
-            </Link>
-          )}
           {!isAuthenticated ? (
             <div className="hidden items-center gap-2 md:flex">
               <Link

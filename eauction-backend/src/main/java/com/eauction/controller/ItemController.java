@@ -4,6 +4,8 @@ import com.eauction.dto.ItemDTO;
 import com.eauction.model.Item;
 import com.eauction.model.ItemStatus;
 import com.eauction.service.ItemService;
+import com.eauction.service.UserService;
+import com.eauction.service.AuctionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ItemController {
 
     private final ItemService itemService;
+    private final AuctionService auctionService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<Page<Item>> listItems(@PageableDefault(size = 20) Pageable pageable) {
@@ -77,5 +81,22 @@ public class ItemController {
     @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
     public ResponseEntity<java.util.List<Item>> myItems() {
         return ResponseEntity.ok(itemService.getMyItems());
+    }
+
+    @GetMapping("/my-items")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
+    public ResponseEntity<Page<Item>> myItemsPaged(@PageableDefault(size = 20) Pageable pageable) {
+        return ResponseEntity.ok(itemService.getItemsBySeller(pageable));
+    }
+
+    @PostMapping("/{id}/close")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
+    public ResponseEntity<com.eauction.dto.AuctionResponse> closeAuction(@PathVariable String id) {
+        // Ensure ownership
+        Item item = itemService.getItem(id);
+        if (!item.getSellerId().equals(userService.getCurrentUser().getId())) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(auctionService.closeAuctionManually(id));
     }
 }

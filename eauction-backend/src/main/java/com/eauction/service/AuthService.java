@@ -36,7 +36,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public void register(RegisterRequest request) {
+    public JwtResponse register(RegisterRequest request) {
         log.info("Registering new user with email {}", request.email());
         if (userRepository.existsByEmail(request.email())) {
             throw new BadRequestException("Email already registered");
@@ -53,7 +53,9 @@ public class AuthService {
                 .phone(request.phone())
                 .address(request.address())
                 .build();
-        userRepository.save(user);
+        User saved = userRepository.save(user);
+        String token = jwtTokenProvider.generateToken(saved);
+        return new JwtResponse(token);
     }
 
     public JwtResponse login(LoginRequest request) {

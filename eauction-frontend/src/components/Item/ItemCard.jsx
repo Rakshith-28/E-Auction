@@ -2,19 +2,33 @@ import { memo, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import CountdownTimer from '../Common/CountdownTimer';
-import { Heart } from 'lucide-react';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { addToWatchlist, removeFromWatchlist, checkWatchlist } from '../../services/watchlistService.js';
+import { useCart } from '../../context/CartContext.jsx';
+import { checkInCart as apiCheckInCart } from '../../services/cartService.js';
 
 const ItemCard = ({ item, onClick }) => {
   const navigate = useNavigate();
   const [fav, setFav] = useState(false);
   const [loadingFav, setLoadingFav] = useState(false);
+  const [inCart, setInCart] = useState(false);
+  const [loadingCart, setLoadingCart] = useState(false);
+  const { addToCart, removeFromCart } = useCart();
 
   useEffect(() => {
     let active = true;
     (async () => {
       const [data] = await checkWatchlist(item.id);
       if (active && data) setFav(Boolean(data.inWatchlist));
+    })();
+    return () => { active = false; };
+  }, [item.id]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const [data] = await apiCheckInCart(item.id);
+      if (active) setInCart(Boolean(data?.inCart));
     })();
     return () => { active = false; };
   }, [item.id]);
@@ -33,6 +47,20 @@ const ItemCard = ({ item, onClick }) => {
     setLoadingFav(false);
   };
   const go = () => (onClick ? onClick() : navigate(`/items/${item.id}`));
+
+  const toggleCart = async (e) => {
+    e.stopPropagation();
+    if (loadingCart) return;
+    setLoadingCart(true);
+    if (inCart) {
+      const err = await removeFromCart(item.id);
+      if (!err) setInCart(false);
+    } else {
+      const err = await addToCart(item.id);
+      if (!err) setInCart(true);
+    }
+    setLoadingCart(false);
+  };
 
   return (
     <article
@@ -57,6 +85,14 @@ const ItemCard = ({ item, onClick }) => {
           aria-label={fav ? 'Remove from watchlist' : 'Add to watchlist'}
         >
           <Heart className={`h-5 w-5 ${fav ? 'fill-rose-500' : 'fill-transparent'}`} />
+        </button>
+        <button
+          type="button"
+          onClick={toggleCart}
+          className={`absolute right-3 top-14 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/80 backdrop-blur transition hover:bg-white ${inCart ? 'text-primary-600' : 'text-slate-500'}`}
+          aria-label={inCart ? 'Remove from cart' : 'Add to cart'}
+        >
+          <ShoppingCart className={`h-5 w-5 ${inCart ? 'fill-primary-500' : 'fill-transparent'}`} />
         </button>
       </div>
       <div className="flex flex-1 flex-col p-4">

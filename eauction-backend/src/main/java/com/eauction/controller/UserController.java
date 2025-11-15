@@ -1,6 +1,8 @@
 package com.eauction.controller;
 
 import com.eauction.dto.ProfileUpdateRequest;
+import com.eauction.dto.AddRoleRequest;
+import com.eauction.model.Role;
 import com.eauction.dto.UserResponse;
 import com.eauction.service.UserService;
 import jakarta.validation.Valid;
@@ -34,5 +36,11 @@ public class UserController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<java.util.List<UserResponse>> getUsers() {
         return ResponseEntity.ok(userService.getAllUsers().stream().map(UserResponse::from).toList());
+    }
+
+    @PutMapping("/add-role")
+    public ResponseEntity<UserResponse> addRole(@Valid @RequestBody AddRoleRequest request) {
+        Role role = request.role();
+        return ResponseEntity.ok(UserResponse.from(userService.addRoleToCurrentUser(role)));
     }
 }

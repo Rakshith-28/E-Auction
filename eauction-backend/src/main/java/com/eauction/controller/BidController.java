@@ -40,4 +40,10 @@ public class BidController {
     public ResponseEntity<List<BidResponse>> myBids() {
         return ResponseEntity.ok(bidService.getMyBids());
     }
+
+    @GetMapping("/my-items")
+    @PreAuthorize("hasAnyRole('SELLER','ADMIN')")
+    public ResponseEntity<List<BidResponse>> bidsOnMyItems() {
+        return ResponseEntity.ok(bidService.getBidsOnMyItems());
+    }
 }

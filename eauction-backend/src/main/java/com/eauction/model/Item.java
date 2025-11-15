@@ -1,6 +1,7 @@
 package com.eauction.model;
 
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,12 +25,17 @@ public class Item {
     private String description;
     private String category;
     private String imageUrl;
+    private List<String> images;
+    private ItemCondition condition;
     private Double minimumBid;
     private Double currentBid;
+    private Double bidIncrement;
     private String sellerId;
+    private String sellerName;
     private Instant auctionStartTime;
     private Instant auctionEndTime;
     private ItemStatus status;
+    private Integer totalBids;
 
     @CreatedDate
     private Instant createdAt;

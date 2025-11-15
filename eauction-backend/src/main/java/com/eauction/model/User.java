@@ -3,6 +3,7 @@ package com.eauction.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,6 +42,9 @@ public class User implements UserDetails {
 
     private String address;
 
+    private java.util.List<String> watchlist;
+    private java.util.List<String> cart;
+
     @CreatedDate
     private Instant createdAt;
 
@@ -55,6 +59,73 @@ public class User implements UserDetails {
         return roles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
                 .toList();
+    }
+
+    public boolean hasRole(Role role) {
+        return roles != null && roles.contains(role);
+    }
+
+    public boolean isBuyer() {
+        return hasRole(Role.BUYER);
+    }
+
+    public boolean isSeller() {
+        return hasRole(Role.SELLER);
+    }
+
+    public void addRole(Role role) {
+        if (roles == null) {
+            roles = new ArrayList<>();
+        }
+        if (!roles.contains(role)) {
+            roles.add(role);
+        }
+    }
+
+    public java.util.List<String> getWatchlist() {
+        if (watchlist == null) {
+            watchlist = new ArrayList<>();
+        }
+        return watchlist;
+    }
+
+    public void addToWatchlist(String itemId) {
+        getWatchlist();
+        if (!watchlist.contains(itemId)) {
+            watchlist.add(itemId);
+        }
+    }
+
+    public void removeFromWatchlist(String itemId) {
+        if (watchlist != null) {
+            watchlist.remove(itemId);
+        }
+    }
+
+    public java.util.List<String> getCart() {
+        if (cart == null) {
+            cart = new ArrayList<>();
+        }
+        return cart;
+    }
+
+    public void addToCart(String itemId) {
+        getCart();
+        if (!cart.contains(itemId)) {
+            cart.add(itemId);
+        }
+    }
+
+    public void removeFromCart(String itemId) {
+        if (cart != null) {
+            cart.remove(itemId);
+        }
+    }
+
+    public void clearCart() {
+        if (cart != null) {
+            cart.clear();
+        }
     }
 
     @Override

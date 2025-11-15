@@ -22,6 +22,7 @@ import BrowseItemsPage from './pages/BrowseItemsPage.jsx';
 import ItemDetailsPage from './pages/ItemDetailsPage.jsx';
 import WatchlistPage from './pages/WatchlistPage.jsx';
 import NotificationCenterPage from './pages/NotificationCenterPage.jsx';
+import CartPage from './pages/CartPage.jsx';
 
 const App = () => (
   <Routes>
@@ -40,6 +41,7 @@ const App = () => (
         <Route path="bid-history" element={<BidHistoryPage />} />
         <Route path="watchlist" element={<WatchlistPage />} />
         <Route path="notifications" element={<NotificationCenterPage />} />
+        <Route path="cart" element={<CartPage />} />
       </Route>
 
       <Route element={<ProtectedRoute roles={['SELLER', 'ADMIN']} />}>

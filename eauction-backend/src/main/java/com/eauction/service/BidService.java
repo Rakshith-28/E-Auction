@@ -15,6 +15,7 @@ import com.eauction.model.User;
 import com.eauction.repository.AuctionRepository;
 import com.eauction.repository.BidRepository;
 import com.eauction.repository.ItemRepository;
+import com.eauction.repository.UserRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class BidService {
     private final AuctionRepository auctionRepository;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
 
     public BidResponse placeBid(BidDTO bidRequest) {
         Assert.notNull(bidRequest.itemId(), "Item id is required");
@@ -50,6 +52,7 @@ public class BidService {
         }
 
         List<Bid> existingBids = bidRepository.findByItemIdOrderByBidAmountDesc(item.getId());
+        Bid previousHighest = existingBids.isEmpty() ? null : existingBids.get(0);
         for (Bid existing : existingBids) {
             existing.setStatus(BidStatus.OUTBID);
         }
@@ -65,6 +68,8 @@ public class BidService {
         Bid savedBid = bidRepository.save(bid);
 
         item.setCurrentBid(bidRequest.bidAmount());
+        Integer tb = item.getTotalBids() == null ? 0 : item.getTotalBids();
+        item.setTotalBids(tb + 1);
         itemRepository.save(item);
         Auction auction = auctionRepository.findById(item.getId()).orElse(null);
         if (auction != null) {
@@ -73,7 +78,7 @@ public class BidService {
             auctionRepository.save(auction);
         }
 
-        notifyParticipants(item, bidder);
+        notifyParticipants(item, bidder, previousHighest);
         return BidResponse.from(savedBid, ItemSummary.from(item));
     }
 
@@ -90,23 +95,51 @@ public class BidService {
                 .stream()
                 .map(bid -> {
                     Item item = itemRepository.findById(bid.getItemId()).orElse(null);
-                    return BidResponse.from(bid, ItemSummary.from(item));
+                    String bidderName = user.getName();
+                    return BidResponse.from(bid, ItemSummary.from(item), bidderName);
                 })
                 .toList();
     }
 
-    private void notifyParticipants(Item item, User bidder) {
+    public List<BidResponse> getBidsOnMyItems() {
+        User me = userService.getCurrentUser();
+        List<Item> myItems = itemRepository.findBySellerId(me.getId());
+        java.util.Set<String> itemIds = myItems.stream().map(Item::getId).collect(java.util.stream.Collectors.toSet());
+        return itemIds.stream()
+                .flatMap(itemId -> bidRepository.findByItemIdOrderByBidAmountDesc(itemId).stream())
+                .sorted((a, b) -> b.getBidTime().compareTo(a.getBidTime()))
+                .map(bid -> {
+                    Item item = itemRepository.findById(bid.getItemId()).orElse(null);
+                    String bidderName = userRepository.findById(bid.getBidderId()).map(User::getName).orElse("User");
+                    return BidResponse.from(bid, ItemSummary.from(item), bidderName);
+                })
+                .toList();
+    }
+
+        private void notifyParticipants(Item item, User bidder, Bid previousHighest) {
+        String actionUrl = "/items/" + item.getId();
         notificationService.createNotification(
-                item.getSellerId(),
-                "New bid placed",
-                bidder.getName() + " placed a bid of $" + item.getCurrentBid() + " on your item " + item.getTitle(),
-                "BID_PLACED"
+            item.getSellerId(),
+            "New bid on " + item.getTitle(),
+            bidder.getName() + " placed a bid of $" + item.getCurrentBid(),
+            "NEW_BID_ON_ITEM",
+            item.getId(), item.getTitle(), actionUrl
         );
         notificationService.createNotification(
-                bidder.getId(),
-                "Bid successful",
-                "You placed a bid of $" + item.getCurrentBid() + " on " + item.getTitle(),
-                "BID_PLACED"
+            bidder.getId(),
+            "Bid successful",
+            "You placed a bid of $" + item.getCurrentBid() + " on " + item.getTitle(),
+            "BID_PLACED",
+            item.getId(), item.getTitle(), actionUrl
         );
+        if (previousHighest != null && !previousHighest.getBidderId().equals(bidder.getId())) {
+            notificationService.createNotification(
+                previousHighest.getBidderId(),
+                "You've been outbid!",
+                "Someone bid higher on " + item.getTitle() + ". Current bid: $" + item.getCurrentBid(),
+                "OUTBID",
+                item.getId(), item.getTitle(), actionUrl
+            );
+        }
     }
 }

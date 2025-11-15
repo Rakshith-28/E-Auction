@@ -63,6 +63,42 @@ public class AuctionService {
         auctionsToClose.forEach(this::finalizeAuction);
     }
 
+    @Scheduled(fixedRate = 60000)
+    public void notifyEndingSoonAuctions() {
+        Instant now = Instant.now();
+        Instant cutoff = now.plusSeconds(3600); // 1 hour
+        auctionRepository.findByStatus(AuctionStatus.ACTIVE).stream()
+                .filter(a -> a.getEndTime() != null && a.getEndTime().isAfter(now) && a.getEndTime().isBefore(cutoff))
+                .filter(a -> a.getEndingSoonNotified() == null || !a.getEndingSoonNotified())
+                .forEach(a -> {
+                    Item item = itemRepository.findById(a.getItemId()).orElse(null);
+                    if (item == null) return;
+                    String actionUrl = "/items/" + item.getId();
+                    // Seller notification
+                    notificationService.createNotification(
+                            item.getSellerId(),
+                            "Auction ending soon!",
+                            item.getTitle() + " ends in 1 hour. Current bid: $" + (item.getCurrentBid() == null ? 0 : item.getCurrentBid()),
+                            "AUCTION_ENDING_SOON",
+                            item.getId(), item.getTitle(), actionUrl
+                    );
+                    // Highest bidder notification
+                    List<Bid> bids = bidRepository.findByItemIdOrderByBidAmountDesc(item.getId());
+                    if (!bids.isEmpty()) {
+                        Bid highest = bids.get(0);
+                        notificationService.createNotification(
+                                highest.getBidderId(),
+                                "Auction ending soon!",
+                                item.getTitle() + " ends in 1 hour. Current bid: $" + (item.getCurrentBid() == null ? 0 : item.getCurrentBid()),
+                                "AUCTION_ENDING_SOON",
+                                item.getId(), item.getTitle(), actionUrl
+                        );
+                    }
+                    a.setEndingSoonNotified(true);
+                    auctionRepository.save(a);
+                });
+    }
+
     public Auction finalizeAuction(String auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found"));
@@ -142,11 +178,13 @@ public class AuctionService {
 
     private void notifyAuctionParticipants(Item item, Auction auction, Bid winningBid) {
         userRepository.findById(item.getSellerId()).ifPresent(seller -> {
+            String actionUrl = "/items/" + item.getId();
             notificationService.createNotification(
-                    seller.getId(),
-                    "Auction ended",
-                    buildSellerMessage(item, winningBid),
-                    winningBid != null ? "ITEM_SOLD" : "AUCTION_CLOSED"
+                seller.getId(),
+                winningBid != null ? "Your item sold!" : "Auction ended",
+                buildSellerMessage(item, winningBid),
+                winningBid != null ? "ITEM_SOLD" : "AUCTION_CLOSED",
+                item.getId(), item.getTitle(), actionUrl
             );
             if (winningBid != null) {
                 emailService.sendEmail(
@@ -158,27 +196,34 @@ public class AuctionService {
         });
         if (winningBid != null) {
             userRepository.findById(winningBid.getBidderId()).ifPresent(winner -> {
-                notificationService.createNotification(
-                        winner.getId(),
-                        "Congratulations!",
-                        "You won the auction for " + item.getTitle() + " with a bid of $" + winningBid.getBidAmount(),
-                        "AUCTION_WON"
-                );
+            String actionUrl = "/items/" + item.getId();
+            notificationService.createNotification(
+                winner.getId(),
+                "Congratulations!",
+                "You won " + item.getTitle() + " for $" + winningBid.getBidAmount(),
+                "AUCTION_WON",
+                item.getId(), item.getTitle(), actionUrl
+            );
                 emailService.sendEmail(
                         winner.getEmail(),
                         "You won the auction",
                         "Congratulations! You won " + item.getTitle() + " for $" + winningBid.getBidAmount() + "."
                 );
             });
-        } else {
-            bidRepository.findByItemIdOrderByBidAmountDesc(item.getId()).forEach(bid ->
-                    notificationService.createNotification(
-                            bid.getBidderId(),
-                            "Auction ended",
-                            "The auction for " + item.getTitle() + " ended without a winner.",
-                            "AUCTION_CLOSED"
-                    ));
         }
+        bidRepository.findByItemIdOrderByBidAmountDesc(item.getId()).stream()
+            .skip(winningBid != null ? 1 : 0)
+            .forEach(bid -> {
+                String actionUrl = "/items/" + item.getId();
+                notificationService.createNotification(
+                    bid.getBidderId(),
+                    winningBid != null ? "Auction ended" : "Auction ended",
+                    winningBid != null ? ("You didn't win " + item.getTitle() + ". Final price: $" + winningBid.getBidAmount())
+                        : ("The auction for " + item.getTitle() + " ended without a winner."),
+                    winningBid != null ? "AUCTION_LOST" : "AUCTION_CLOSED",
+                    item.getId(), item.getTitle(), actionUrl
+                );
+            });
     }
 
     private String buildSellerMessage(Item item, Bid winningBid) {

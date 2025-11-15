@@ -24,6 +24,9 @@ public class Notification {
     private String message;
     private String type;
     private boolean read;
+    private String itemId;
+    private String itemTitle;
+    private String actionUrl;
 
     @CreatedDate
     private Instant createdAt;

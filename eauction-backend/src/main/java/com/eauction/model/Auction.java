@@ -27,6 +27,7 @@ public class Auction {
     private String winnerId;
     private Double winningBid;
     private Integer totalBids;
+    private Boolean endingSoonNotified;
 
     @CreatedDate
     private Instant createdAt;

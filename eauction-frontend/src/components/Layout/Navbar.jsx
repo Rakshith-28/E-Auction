@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import {
   Menu,
@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import NotificationBell from '../Notifications/NotificationBell';
+import { useCart } from '../../context/CartContext';
 
 const NAV_LINKS = [
   { to: '/', label: 'Home' },
@@ -23,6 +24,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
+  const { cartCount, refreshCartCount } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -32,6 +34,10 @@ const Navbar = () => {
   };
 
   const filteredLinks = NAV_LINKS.filter((link) => (!link.roles ? true : link.roles.includes(user?.role)));
+
+  useEffect(() => {
+    refreshCartCount();
+  }, [isAuthenticated, refreshCartCount]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/20 bg-white/70 backdrop-blur-xl shadow-glass">
@@ -102,16 +108,15 @@ const Navbar = () => {
               if (!isAuthenticated) {
                 setCartModalOpen(true);
               } else {
-                // Navigate to cart page when implemented
-                console.log('Navigate to cart');
+                navigate('/cart');
               }
             }}
             className="relative hidden h-10 w-10 items-center justify-center rounded-full border border-white/60 bg-white/60 text-slate-600 transition hover:border-primary-200 hover:text-primary-600 md:flex"
             aria-label="Shopping cart"
           >
             <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -right-1 -top-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-white">
-              0
+            <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-[1rem] px-1 items-center justify-center rounded-full bg-primary-500 text-[10px] font-bold text-white">
+              {cartCount}
             </span>
           </button>
           {isAuthenticated && <NotificationBell />}

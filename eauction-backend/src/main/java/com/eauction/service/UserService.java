@@ -62,4 +62,59 @@ public class UserService {
     public boolean isAdmin(User user) {
         return user.getRoles() != null && user.getRoles().contains(Role.ADMIN);
     }
+
+    public User addRoleToCurrentUser(Role role) {
+        User user = getCurrentUser();
+        if (!user.hasRole(role)) {
+            user.addRole(role);
+            user = userRepository.save(user);
+            log.info("Added role {} to user {}", role, user.getEmail());
+        }
+        return user;
+    }
+
+    public User addItemToWatchlist(String itemId) {
+        User user = getCurrentUser();
+        user.addToWatchlist(itemId);
+        return userRepository.save(user);
+    }
+
+    public User removeItemFromWatchlist(String itemId) {
+        User user = getCurrentUser();
+        user.removeFromWatchlist(itemId);
+        return userRepository.save(user);
+    }
+
+    public boolean isItemInWatchlist(String itemId) {
+        User user = getCurrentUser();
+        return user.getWatchlist().contains(itemId);
+    }
+
+    public User addItemToCart(String itemId) {
+        User user = getCurrentUser();
+        user.addToCart(itemId);
+        return userRepository.save(user);
+    }
+
+    public User removeItemFromCart(String itemId) {
+        User user = getCurrentUser();
+        user.removeFromCart(itemId);
+        return userRepository.save(user);
+    }
+
+    public void clearCart() {
+        User user = getCurrentUser();
+        user.clearCart();
+        userRepository.save(user);
+    }
+
+    public boolean isItemInCart(String itemId) {
+        User user = getCurrentUser();
+        return user.getCart().contains(itemId);
+    }
+
+    public int getCartCount() {
+        User user = getCurrentUser();
+        return user.getCart().size();
+    }
 }

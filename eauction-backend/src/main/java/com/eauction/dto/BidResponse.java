@@ -8,16 +8,21 @@ public record BidResponse(
         String id,
         String itemId,
         String bidderId,
+        String bidderName,
         Double amount,
         Instant timestamp,
         BidStatus status,
         ItemSummary item
 ) {
     public static BidResponse from(Bid bid) {
-        return from(bid, null);
+        return from(bid, null, null);
     }
 
     public static BidResponse from(Bid bid, ItemSummary itemSummary) {
+        return from(bid, itemSummary, null);
+    }
+
+    public static BidResponse from(Bid bid, ItemSummary itemSummary, String bidderName) {
         if (bid == null) {
             return null;
         }
@@ -25,6 +30,7 @@ public record BidResponse(
                 bid.getId(),
                 bid.getItemId(),
                 bid.getBidderId(),
+                bidderName,
                 bid.getBidAmount(),
                 bid.getBidTime(),
                 bid.getStatus(),

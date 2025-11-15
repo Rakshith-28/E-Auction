@@ -12,6 +12,7 @@ import com.eauction.model.ItemStatus;
 import com.eauction.model.User;
 import com.eauction.repository.AuctionRepository;
 import com.eauction.repository.ItemRepository;
+import com.eauction.repository.BidRepository;
 import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -29,23 +30,31 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final AuctionRepository auctionRepository;
     private final UserService userService;
+    private final BidRepository bidRepository;
 
     public Item createItem(ItemDTO dto) {
         User seller = userService.getCurrentUser();
-        validateItemTimes(dto.auctionStartTime(), dto.auctionEndTime());
+        Instant start = dto.auctionStartTime() != null ? dto.auctionStartTime() : Instant.now();
+        Instant end = dto.auctionEndTime();
+        validateItemTimes(start, end);
 
-        ItemStatus status = determineInitialStatus(dto.auctionStartTime(), dto.auctionEndTime());
+        ItemStatus status = determineInitialStatus(start, end);
         Item item = Item.builder()
                 .title(dto.title())
                 .description(dto.description())
                 .category(dto.category())
                 .imageUrl(dto.imageUrl())
+            .images(dto.images())
+            .condition(dto.condition())
                 .minimumBid(dto.minimumBid())
                 .currentBid(dto.minimumBid())
+            .bidIncrement(dto.bidIncrement() == null ? 10.0 : dto.bidIncrement())
                 .sellerId(seller.getId())
-                .auctionStartTime(dto.auctionStartTime())
-                .auctionEndTime(dto.auctionEndTime())
+            .sellerName(seller.getName())
+            .auctionStartTime(start)
+            .auctionEndTime(end)
                 .status(status)
+            .totalBids(0)
                 .build();
         Item savedItem = itemRepository.save(item);
         createAuctionForItem(savedItem);
@@ -57,17 +66,35 @@ public class ItemService {
         Item item = getItem(itemId);
         User currentUser = userService.getCurrentUser();
         ensureOwnershipOrAdmin(item, currentUser);
-        validateItemTimes(dto.auctionStartTime(), dto.auctionEndTime());
+        // Validate updatable fields per rules
+        // Times may only be updated if auction hasn't started and no bids exist
+        Instant now = Instant.now();
+        boolean auctionStarted = item.getAuctionStartTime() != null && !item.getAuctionStartTime().isAfter(now);
+        long bidCount = bidCountForItem(item.getId());
+        if (dto.auctionStartTime() != null || dto.auctionEndTime() != null) {
+            if (auctionStarted || bidCount > 0) {
+                throw new BadRequestException("Cannot modify auction times after start or when bids exist");
+            }
+            validateItemTimes(dto.auctionStartTime(), dto.auctionEndTime());
+            item.setAuctionStartTime(dto.auctionStartTime());
+            item.setAuctionEndTime(dto.auctionEndTime());
+        }
         item.setTitle(dto.title());
         item.setDescription(dto.description());
         item.setCategory(dto.category());
         item.setImageUrl(dto.imageUrl());
-        item.setMinimumBid(dto.minimumBid());
-        if (item.getCurrentBid() == null || item.getCurrentBid() < dto.minimumBid()) {
-            item.setCurrentBid(dto.minimumBid());
+        item.setImages(dto.images());
+        item.setCondition(dto.condition());
+        // Minimum bid can only be updated if no bids
+        if (bidCount == 0) {
+            item.setMinimumBid(dto.minimumBid());
+            if (item.getCurrentBid() == null || item.getCurrentBid() < dto.minimumBid()) {
+                item.setCurrentBid(dto.minimumBid());
+            }
         }
-        item.setAuctionStartTime(dto.auctionStartTime());
-        item.setAuctionEndTime(dto.auctionEndTime());
+        if (dto.bidIncrement() != null) {
+            item.setBidIncrement(dto.bidIncrement());
+        }
         if (dto.status() != null && userService.isAdmin(currentUser)) {
             item.setStatus(dto.status());
         }
@@ -80,6 +107,9 @@ public class ItemService {
         Item item = getItem(itemId);
         User currentUser = userService.getCurrentUser();
         ensureOwnershipOrAdmin(item, currentUser);
+        if (bidCountForItem(itemId) > 0) {
+            throw new BadRequestException("Cannot delete item with bids");
+        }
         itemRepository.deleteById(itemId);
         auctionRepository.findById(itemId).ifPresent(auctionRepository::delete);
     }
@@ -188,5 +218,9 @@ public class ItemService {
             auction.setEndTime(item.getAuctionEndTime());
             auctionRepository.save(auction);
         }, () -> createAuctionForItem(item));
+    }
+
+    private long bidCountForItem(String itemId) {
+        return bidRepository.countByItemId(itemId);
     }
 }

@@ -8,6 +8,8 @@ import { getItem } from '../services/itemService.js';
 import { getBidsForItem, placeBid } from '../services/bidService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
 import { useAuth } from '../hooks/useAuth';
+import { useCart } from '../context/CartContext.jsx';
+import { checkInCart as apiCheckInCart } from '../services/cartService.js';
 
 const ItemDetailsPage = () => {
   const { id } = useParams();
@@ -19,6 +21,9 @@ const ItemDetailsPage = () => {
   const [bidAmount, setBidAmount] = useState('');
   const [placing, setPlacing] = useState(false);
   const [toast, setToast] = useState(null);
+  const [inCart, setInCart] = useState(false);
+  const [cartBusy, setCartBusy] = useState(false);
+  const { addToCart, removeFromCart } = useCart();
 
   const fetchAll = async () => {
     const [[itemData, itemErr], [bidsData, bidsErr]] = await Promise.all([
@@ -48,6 +53,16 @@ const ItemDetailsPage = () => {
     startPolling();
     return () => intervalId && clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (!id) return;
+      const [data] = await apiCheckInCart(id);
+      if (active) setInCart(Boolean(data?.inCart));
+    })();
+    return () => { active = false; };
   }, [id]);
 
   useEffect(() => {
@@ -84,6 +99,29 @@ const ItemDetailsPage = () => {
     setToast({ type: 'success', title: 'Bid placed', message: 'Bid placed successfully!' });
     setBidAmount('');
     fetchAll();
+  };
+
+  const handleCartToggle = async () => {
+    if (!item) return;
+    setCartBusy(true);
+    if (inCart) {
+      const err = await removeFromCart(item.id);
+      if (!err) {
+        setInCart(false);
+        setToast({ type: 'success', title: 'Removed', message: 'Item removed from cart.' });
+      } else {
+        setToast({ type: 'error', title: 'Remove failed', message: err });
+      }
+    } else {
+      const err = await addToCart(item.id);
+      if (!err) {
+        setInCart(true);
+        setToast({ type: 'success', title: 'Added', message: 'Item added to cart.' });
+      } else {
+        setToast({ type: 'error', title: 'Add failed', message: err });
+      }
+    }
+    setCartBusy(false);
   };
 
   if (loading) {
@@ -175,6 +213,14 @@ const ItemDetailsPage = () => {
           <h2 className="text-lg font-semibold text-slate-900">Auction</h2>
           <div className="mt-2 text-sm text-slate-600">Current highest bid</div>
           <div className="mt-1 text-3xl font-bold text-slate-900">${(item.currentBid ?? item.minimumBid ?? 0).toFixed(2)}</div>
+          <button
+            type="button"
+            onClick={handleCartToggle}
+            disabled={cartBusy}
+            className="mt-4 w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary-200 hover:text-primary-600 disabled:opacity-60"
+          >
+            {inCart ? (cartBusy ? 'Removing…' : 'Remove from Cart') : (cartBusy ? 'Adding…' : 'Add to Cart')}
+          </button>
           <form onSubmit={handleBid} className="mt-6 space-y-4">
             <div>
               <label className="text-sm font-medium text-slate-700">Your bid</label>

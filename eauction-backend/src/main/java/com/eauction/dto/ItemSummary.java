@@ -12,6 +12,7 @@ public record ItemSummary(
         String imageUrl,
         Double minimumBid,
         Double currentBid,
+        Integer totalBids,
         ItemStatus status,
         Instant auctionStartTime,
         Instant auctionEndTime
@@ -28,6 +29,7 @@ public record ItemSummary(
                 item.getImageUrl(),
                 item.getMinimumBid(),
                 item.getCurrentBid(),
+                item.getTotalBids(),
                 item.getStatus(),
                 item.getAuctionStartTime(),
                 item.getAuctionEndTime()

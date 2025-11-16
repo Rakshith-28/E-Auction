@@ -46,7 +46,7 @@ const Section = ({ title, icon: Icon, isOpen, onToggle, children }) => (
   </div>
 );
 
-const MenuItem = ({ to, icon: Icon, label, active, onClick, disabled }) => (
+const MenuItem = ({ to, icon: Icon, label, active, onClick, disabled, badgeCount }) => (
   <button
     onClick={onClick}
     disabled={disabled}
@@ -57,11 +57,21 @@ const MenuItem = ({ to, icon: Icon, label, active, onClick, disabled }) => (
     } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
   >
     <Icon className="h-4 w-4" />
-    {label}
+    <span className="relative inline-block">
+      {label}
+      {badgeCount > 0 && (
+        <span
+          className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-[11px] font-bold text-white shadow animate-pulse"
+          aria-label={`${badgeCount} pending payments`}
+        >
+          {badgeCount}
+        </span>
+      )}
+    </span>
   </button>
 );
 
-const Sidebar = () => {
+const Sidebar = ({ wonUnpaid = 0 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isBuyer, isSeller, user, roles } = useAuth();
@@ -117,6 +127,7 @@ const Sidebar = () => {
             to={item.to}
             icon={item.icon}
             label={item.label}
+            badgeCount={item.label === 'Won Items' ? wonUnpaid : 0}
             active={
               item.to.startsWith('/dashboard?tab=')
                 ? (activePath === '/dashboard' && location.search.includes(item.to.split('=')[1]))

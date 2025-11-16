@@ -2,6 +2,9 @@ import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import { createItem } from '../services/itemService.js';
+import { uploadImages } from '../services/uploadService.js';
+import CreateItemConfirmationModal from '../components/Item/CreateItemConfirmationModal.jsx';
+import Toast from '../components/Common/Toast.jsx';
 import {
   PackagePlus,
   Type as TypeIcon,
@@ -20,10 +23,10 @@ const INITIAL_FORM = {
   title: '',
   description: '',
   category: '',
-  imageUrl: '',
   minimumBid: '',
   auctionStartTime: '',
   auctionEndTime: '',
+  imageUrl: '', // For testing: paste a real image URL here
 };
 
 const CATEGORIES = [
@@ -44,6 +47,9 @@ const CreateItemPage = () => {
   const [images, setImages] = useState([]); // {file, url}
   const [success, setSuccess] = useState(false);
   const dropRef = useRef(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingItem, setPendingItem] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -86,7 +92,6 @@ const CreateItemPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError(null);
-    setLoading(true);
     // simple client validation
     const nextErrors = {};
     if (!formState.title) nextErrors.title = 'Title is required';
@@ -97,7 +102,6 @@ const CreateItemPage = () => {
 
     if (Object.keys(nextErrors).length) {
       setErrors(nextErrors);
-      setLoading(false);
       // trigger shake on form card
       dropRef.current?.classList.add('animate-shake');
       setTimeout(() => dropRef.current?.classList.remove('animate-shake'), 400);
@@ -109,37 +113,72 @@ const CreateItemPage = () => {
       : new Date().toISOString();
 
     const payload = {
-      ...formState,
+      title: formState.title,
+      description: formState.description,
+      category: formState.category,
       minimumBid: Number.parseFloat(formState.minimumBid),
       auctionStartTime: startTime,
       auctionEndTime: formState.auctionEndTime ? new Date(formState.auctionEndTime).toISOString() : null,
-      imageUrl: images[0]?.url || formState.imageUrl || '',
     };
 
     if (payload.auctionStartTime && payload.auctionEndTime) {
       if (new Date(payload.auctionEndTime) <= new Date(payload.auctionStartTime)) {
-        setLoading(false);
         setError('Auction end time must be after the start time.');
         return;
       }
     }
 
-    const [item, createError] = await createItem(payload);
+    // Upload images if any
+    if (images.length > 0) {
+      setLoading(true);
+      const files = images.map(img => img.file);
+      const [uploadResult, uploadError] = await uploadImages(files);
+      setLoading(false);
+      
+      if (uploadError) {
+        setError('Failed to upload images: ' + uploadError);
+        setToast({ type: 'error', title: 'Upload Failed', message: uploadError });
+        return;
+      }
+      
+      if (uploadResult?.urls && uploadResult.urls.length > 0) {
+        payload.images = uploadResult.urls;
+        payload.imageUrl = uploadResult.urls[0]; // Set first image as main
+      }
+    }
 
+    // Show confirmation modal
+    setPendingItem({ ...payload, previewImage: images[0]?.url });
+    setConfirmOpen(true);
+  };
+
+  const confirmCreateItem = async () => {
+    if (!pendingItem) return false;
+    setLoading(true);
+    console.log('[CreateItem] Sending payload:', pendingItem);
+    const [item, createError] = await createItem(pendingItem);
     setLoading(false);
 
     if (createError) {
+      console.error('[CreateItem] API Error:', createError);
       setError(createError);
-      return;
+      setToast({ type: 'error', title: 'Listing Failed', message: createError });
+      setConfirmOpen(false);
+      setPendingItem(null);
+      return false;
     }
 
+    setToast({ type: 'success', title: 'Listing Created', message: 'Your auction is now live!' });
+    setConfirmOpen(false);
+    setPendingItem(null);
+    setSuccess(true);
+
     if (item?.id) {
-      setSuccess(true);
       setTimeout(() => navigate(`/auctions/${item.id}`), 1200);
     } else {
-      setSuccess(true);
       setTimeout(() => navigate('/items/mine'), 1200);
     }
+    return true;
   };
 
   return (
@@ -228,22 +267,6 @@ const CreateItemPage = () => {
                 </select>
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">▾</span>
                 {errors.category && <p className="mt-1 flex items-center gap-1 text-xs text-red-600"><Info className="h-3.5 w-3.5" />{errors.category}</p>}
-              </div>
-            </div>
-
-            {/* Image URL */}
-            <div>
-              <div className="relative">
-                <ImagePlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <input
-                  id="imageUrl"
-                  name="imageUrl"
-                  value={formState.imageUrl}
-                  onChange={handleChange}
-                  placeholder="Image URL (optional)"
-                  className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-100"
-                />
-                <p className="mt-1 text-xs text-slate-500">You can also upload images below.</p>
               </div>
             </div>
 
@@ -364,6 +387,15 @@ const CreateItemPage = () => {
             </div>
           )}
         </form>
+
+        {toast && <Toast type={toast.type} title={toast.title} message={toast.message} />}
+
+        <CreateItemConfirmationModal
+          isOpen={confirmOpen}
+          onClose={() => { setConfirmOpen(false); setPendingItem(null); }}
+          itemData={pendingItem}
+          onConfirm={confirmCreateItem}
+        />
       </div>
     </div>
   );

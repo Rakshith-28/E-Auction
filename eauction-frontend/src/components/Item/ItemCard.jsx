@@ -67,12 +67,13 @@ const ItemCard = ({ item, onClick }) => {
       className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl"
       onClick={go}
     >
-      <div className="relative aspect-[4/3] w-full bg-slate-100">
-        {item.imageUrl ? (
-          <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
-        ) : (
-          <div className="grid h-full w-full place-items-center text-slate-400">No image</div>
-        )}
+      <div className="relative aspect-[4/3] w-full bg-gradient-to-br from-slate-100 to-slate-200">
+        <img 
+          src={item.images?.[0] || item.imageUrl || 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image'} 
+          alt={item.title} 
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" 
+          onError={(e) => { e.target.src = 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image'; }}
+        />
         {item.category && (
           <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-700 shadow">
             {item.category}

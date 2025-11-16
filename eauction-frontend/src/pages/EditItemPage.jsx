@@ -8,6 +8,8 @@ const EditItemPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [formState, setFormState] = useState(null);
+  const [originalTimes, setOriginalTimes] = useState({ start: '', end: '' });
+  const [meta, setMeta] = useState({ totalBids: 0, status: '', currentBid: 0 });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -20,15 +22,19 @@ const EditItemPage = () => {
       if (fetchError) {
         setError(fetchError);
       } else if (data) {
+        const startStr = data.auctionStartTime ? new Date(data.auctionStartTime).toISOString().slice(0, 16) : '';
+        const endStr = data.auctionEndTime ? new Date(data.auctionEndTime).toISOString().slice(0, 16) : '';
         setFormState({
           title: data.title ?? '',
           description: data.description ?? '',
           category: data.category ?? '',
           imageUrl: data.imageUrl ?? '',
           minimumBid: data.minimumBid?.toString() ?? '',
-          auctionStartTime: data.auctionStartTime ? new Date(data.auctionStartTime).toISOString().slice(0, 16) : '',
-          auctionEndTime: data.auctionEndTime ? new Date(data.auctionEndTime).toISOString().slice(0, 16) : '',
+          auctionStartTime: startStr,
+          auctionEndTime: endStr,
         });
+        setOriginalTimes({ start: startStr, end: endStr });
+        setMeta({ totalBids: data.totalBids ?? 0, status: data.status ?? '', currentBid: data.currentBid ?? 0 });
       }
 
       setLoading(false);
@@ -42,6 +48,10 @@ const EditItemPage = () => {
     setFormState((prev) => (prev ? { ...prev, [name]: value } : prev));
   };
 
+  const auctionStarted = originalTimes.start && new Date(originalTimes.start) <= new Date();
+  const bidsExist = meta.totalBids > 0;
+  const canEditTimes = !auctionStarted && !bidsExist;
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!formState) return;
@@ -50,17 +60,31 @@ const EditItemPage = () => {
     setSaving(true);
 
     const payload = {
-      ...formState,
+      title: formState.title,
+      description: formState.description,
+      category: formState.category,
+      imageUrl: formState.imageUrl,
       minimumBid: Number.parseFloat(formState.minimumBid),
-      auctionStartTime: formState.auctionStartTime ? new Date(formState.auctionStartTime).toISOString() : null,
-      auctionEndTime: formState.auctionEndTime ? new Date(formState.auctionEndTime).toISOString() : null,
     };
 
-    if (payload.auctionStartTime && payload.auctionEndTime) {
-      if (new Date(payload.auctionEndTime) <= new Date(payload.auctionStartTime)) {
-        setSaving(false);
-        setError('Auction end time must be after the start time.');
-        return;
+    // Only include times if user changed and backend rules allow
+    const startChanged = formState.auctionStartTime !== originalTimes.start;
+    const endChanged = formState.auctionEndTime !== originalTimes.end;
+    const includeTimes = canEditTimes && (startChanged || endChanged);
+    if (includeTimes) {
+      // Only send the fields that changed to avoid validation issues
+      if (startChanged && formState.auctionStartTime) {
+        payload.auctionStartTime = new Date(formState.auctionStartTime).toISOString();
+      }
+      if (endChanged && formState.auctionEndTime) {
+        payload.auctionEndTime = new Date(formState.auctionEndTime).toISOString();
+      }
+      if (payload.auctionStartTime && payload.auctionEndTime) {
+        if (new Date(payload.auctionEndTime) <= new Date(payload.auctionStartTime)) {
+          setSaving(false);
+          setError('Auction end time must be after the start time.');
+          return;
+        }
       }
     }
 
@@ -87,7 +111,7 @@ const EditItemPage = () => {
   return (
     <PageContainer
       title="Update item"
-      subtitle="Adjust the listing details before the auction goes live."
+      subtitle="Adjust listing details. Auction times can only change before start and with no bids."
     >
       <form className="mx-auto grid w-full max-w-3xl gap-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm" onSubmit={handleSubmit}>
         <div className="grid gap-6 md:grid-cols-2">
@@ -174,7 +198,8 @@ const EditItemPage = () => {
               type="datetime-local"
               value={formState.auctionStartTime}
               onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              disabled={!canEditTimes}
+              className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </div>
 
@@ -188,12 +213,16 @@ const EditItemPage = () => {
               type="datetime-local"
               value={formState.auctionEndTime}
               onChange={handleChange}
-              className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+              disabled={!canEditTimes}
+              className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200 disabled:cursor-not-allowed disabled:opacity-60"
               required
             />
           </div>
         </div>
 
+        {!canEditTimes && (
+          <p className="text-xs font-medium text-amber-600">Auction times are locked because the auction has started or bids already exist.</p>
+        )}
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <div className="flex items-center justify-end gap-3">

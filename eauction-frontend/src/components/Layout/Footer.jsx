@@ -45,15 +45,15 @@ const FOOTER_ITEMS = [
       <ul className="space-y-3 text-sm text-white/70">
         <li className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-white/60" />
-          support@eauction.com
+          error404@eauction.com
         </li>
         <li className="flex items-center gap-2">
           <Phone className="h-4 w-4 text-white/60" />
-          +1 (800) 555-9020
+          +91 7259220114
         </li>
         <li className="flex items-start gap-2">
           <MapPin className="mt-0.5 h-4 w-4 text-white/60" />
-          500 Market Street, Suite 210, San Francisco, CA
+          Nitte,Karkala,Karnataka,India,574110
         </li>
       </ul>
     ),

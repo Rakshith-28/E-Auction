@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout.jsx';
 import ProtectedRoute from './components/Common/ProtectedRoute.jsx';
+import ErrorBoundary from './components/Common/ErrorBoundary.jsx';
 import HomePage from './pages/HomePage.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
@@ -28,55 +29,57 @@ import CartPage from './pages/CartPage.jsx';
 import HelpPage from './pages/HelpPage.jsx';
 
 const App = () => (
-  <Routes>
-    <Route element={<MainLayout />}>
-      <Route index element={<HomePage />} />
-      <Route path="auctions" element={<AuctionsPage />} />
-      <Route path="auctions/:id" element={<AuctionDetailsPage />} />
-      <Route path="items" element={<BrowseItemsPage />} />
-      <Route path="items/:id" element={<ItemDetailsPage />} />
-      <Route path="help" element={<HelpPage />} />
+  <ErrorBoundary>
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="auctions" element={<AuctionsPage />} />
+        <Route path="auctions/:id" element={<AuctionDetailsPage />} />
+        <Route path="items" element={<BrowseItemsPage />} />
+        <Route path="items/:id" element={<ItemDetailsPage />} />
+        <Route path="help" element={<HelpPage />} />
 
-      <Route element={<ProtectedRoute />}> 
-        <Route path="profile" element={<ViewProfilePage />} />
-        <Route path="profile/:userId" element={<ViewProfilePage />} />
-        <Route path="profile/edit" element={<EditProfilePage />} />
-        <Route path="settings" element={<EditProfilePage />} />
-        <Route path="bids" element={<MyBidsPage />} />
-        <Route path="my-bids" element={<MyBidsPage />} />
-        <Route path="won-items" element={<WonItemsPage />} />
-        <Route path="bid-history" element={<BidHistoryPage />} />
-        <Route path="watchlist" element={<WatchlistPage />} />
-        <Route path="notifications" element={<NotificationCenterPage />} />
-        <Route path="cart" element={<CartPage />} />
+        <Route element={<ProtectedRoute />}> 
+          <Route path="profile" element={<ViewProfilePage />} />
+          <Route path="profile/:userId" element={<ViewProfilePage />} />
+          <Route path="profile/edit" element={<EditProfilePage />} />
+          <Route path="settings" element={<EditProfilePage />} />
+          <Route path="bids" element={<MyBidsPage />} />
+          <Route path="my-bids" element={<MyBidsPage />} />
+          <Route path="won-items" element={<WonItemsPage />} />
+          <Route path="bid-history" element={<BidHistoryPage />} />
+          <Route path="watchlist" element={<WatchlistPage />} />
+          <Route path="notifications" element={<NotificationCenterPage />} />
+          <Route path="cart" element={<CartPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute roles={['SELLER', 'ADMIN']} />}>
+          <Route path="items/create" element={<CreateItemPage />} />
+          <Route path="items/mine" element={<MyItemsPage />} />
+          <Route path="items/:id/edit" element={<EditItemPage />} />
+          {/* Seller routes aliases */}
+          <Route path="sell/create" element={<CreateItemPage />} />
+          <Route path="sell/listings" element={<MyItemsPage />} />
+          <Route path="sell/bids" element={<ReceivedBidsPage />} />
+          <Route path="sell/sold" element={<SoldItemsPage />} />
+          <Route path="listings" element={<MyItemsPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute roles={['ADMIN']} />}>
+          <Route path="admin" element={<AdminDashboardPage />} />
+        </Route>
+
+        <Route element={<ProtectedRoute />}>
+          <Route path="dashboard" element={<DashboardPage />} />
+        </Route>
       </Route>
 
-      <Route element={<ProtectedRoute roles={['SELLER', 'ADMIN']} />}>
-        <Route path="items/create" element={<CreateItemPage />} />
-        <Route path="items/mine" element={<MyItemsPage />} />
-        <Route path="items/:id/edit" element={<EditItemPage />} />
-        {/* Seller routes aliases */}
-        <Route path="sell/create" element={<CreateItemPage />} />
-        <Route path="sell/listings" element={<MyItemsPage />} />
-        <Route path="sell/bids" element={<ReceivedBidsPage />} />
-        <Route path="sell/sold" element={<SoldItemsPage />} />
-        <Route path="listings" element={<MyItemsPage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute roles={['ADMIN']} />}>
-        <Route path="admin" element={<AdminDashboardPage />} />
-      </Route>
-
-      <Route element={<ProtectedRoute />}>
-        <Route path="dashboard" element={<DashboardPage />} />
-      </Route>
-    </Route>
-
-    <Route path="login" element={<LoginPage />} />
-    <Route path="register" element={<RegisterPage />} />
-    <Route path="logout" element={<Navigate to="/" replace />} />
-    <Route path="*" element={<NotFoundPage />} />
-  </Routes>
+      <Route path="login" element={<LoginPage />} />
+      <Route path="register" element={<RegisterPage />} />
+      <Route path="logout" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  </ErrorBoundary>
 );
 
 export default App;

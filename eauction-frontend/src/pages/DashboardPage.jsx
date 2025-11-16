@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Package, Gavel, TrendingUp, Store, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -15,6 +15,7 @@ const ProfileDashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [buyData, setBuyData] = useState({ activeBids: null, wonAuctions: null, totalSpent: null });
   const [sellData, setSellData] = useState({ activeListings: null, totalBidsReceived: null, revenue: null });
+  const [wonUnpaid, setWonUnpaid] = useState(0);
   const canBuy = !!isBuyer;
   const canSell = !!isSeller;
 
@@ -31,9 +32,8 @@ const ProfileDashboardPage = () => {
     setSearchParams(tab === 'buy' ? { tab: 'buy' } : { tab: 'sell' }, { replace: true });
   };
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     let mounted = true;
-    const load = async () => {
       setLoading(true);
       try {
         const promises = [];
@@ -70,8 +70,9 @@ const ProfileDashboardPage = () => {
 
         // Derive counts with safe fallbacks
         const activeBids = Array.isArray(myBids) ? myBids.length : 0;
-        const wonAuctions = stats?.itemsWon ?? 0;
+        const wonAuctions = (typeof summary?.wonPaid === 'number' ? summary.wonPaid : undefined) ?? (stats?.itemsWon ?? 0);
         const totalSpent = typeof summary?.totalSpent === 'number' ? summary.totalSpent : null;
+        const unpaidCount = typeof summary?.wonUnpaid === 'number' ? summary.wonUnpaid : 0;
 
         const activeListings = Array.isArray(myItems)
           ? myItems.filter(it => (it.status || '').toString().toUpperCase() === 'ACTIVE').length
@@ -80,19 +81,45 @@ const ProfileDashboardPage = () => {
         const revenue = typeof summary?.revenue === 'number' ? summary.revenue : null;
 
         setBuyData({ activeBids, wonAuctions, totalSpent });
+        setWonUnpaid(unpaidCount);
         setSellData({ activeListings, totalBidsReceived, revenue });
       } finally {
         mounted && setLoading(false);
       }
-    };
-    load();
-    return () => { mounted = false; };
   }, [canBuy, canSell, user?.id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      if (!cancelled) await load();
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [load]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        load();
+      }
+    };
+    const onStorage = (e) => {
+      if (e.key === 'dashboardRefresh') {
+        load();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('storage', onStorage);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, [load]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-surface via-white to-primary-50">
       <div className="mx-auto flex max-w-7xl gap-6 px-4 py-8">
-        <Sidebar />
+        <Sidebar wonUnpaid={wonUnpaid} />
 
         {/* Main Content */}
         <main className="flex-1">

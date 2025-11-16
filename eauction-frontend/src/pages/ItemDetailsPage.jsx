@@ -10,6 +10,7 @@ import { formatDateTime } from '../utils/dateUtils.js';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext.jsx';
 import { checkInCart as apiCheckInCart } from '../services/cartService.js';
+import BidConfirmationModal from '../components/Auction/BidConfirmationModal.jsx';
 
 const ItemDetailsPage = () => {
   const { id } = useParams();
@@ -24,6 +25,8 @@ const ItemDetailsPage = () => {
   const [inCart, setInCart] = useState(false);
   const [cartBusy, setCartBusy] = useState(false);
   const { addToCart, removeFromCart } = useCart();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingBid, setPendingBid] = useState(null);
 
   const fetchAll = async () => {
     const [[itemData, itemErr], [bidsData, bidsErr]] = await Promise.all([
@@ -89,16 +92,25 @@ const ItemDetailsPage = () => {
       setToast({ type: 'error', title: 'Not allowed', message: 'You cannot bid on your own item.' });
       return;
     }
+    setPendingBid(amount);
+    setConfirmOpen(true);
+  };
+
+  const confirmPlaceBid = async () => {
+    if (!item || !pendingBid) return false;
     setPlacing(true);
-    const [, err] = await placeBid({ itemId: item.id, bidAmount: amount });
+    const [, err] = await placeBid({ itemId: item.id, bidAmount: pendingBid });
     setPlacing(false);
     if (err) {
       setToast({ type: 'error', title: 'Bid failed', message: err });
-      return;
+      return false;
     }
     setToast({ type: 'success', title: 'Bid placed', message: 'Bid placed successfully!' });
     setBidAmount('');
+    setConfirmOpen(false);
+    setPendingBid(null);
     fetchAll();
+    return true;
   };
 
   const handleCartToggle = async () => {
@@ -163,12 +175,13 @@ const ItemDetailsPage = () => {
       <div className="grid gap-6 md:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            <div className="relative aspect-[4/3] w-full bg-slate-100">
-              {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
-              ) : (
-                <div className="grid h-full w-full place-items-center text-slate-400">No image</div>
-              )}
+            <div className="relative mx-auto aspect-[4/3] w-full max-w-lg bg-gradient-to-br from-slate-100 to-slate-200">
+              <img 
+                src={item.images?.[0] || item.imageUrl || 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image'} 
+                alt={item.title} 
+                className="h-full w-full object-cover"
+                onError={(e) => { e.target.src = 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image'; }}
+              />
             </div>
             <div className="grid gap-4 p-6 text-sm text-slate-600 md:grid-cols-2">
               <div>
@@ -247,6 +260,15 @@ const ItemDetailsPage = () => {
       </div>
 
       {toast && <Toast type={toast.type} title={toast.title} message={toast.message} />}
+
+      <BidConfirmationModal
+        isOpen={confirmOpen}
+        onClose={() => { setConfirmOpen(false); setPendingBid(null); }}
+        item={item}
+        currentBid={item?.currentBid ?? item?.minimumBid ?? 0}
+        bidAmount={pendingBid ?? 0}
+        onConfirm={confirmPlaceBid}
+      />
     </PageContainer>
   );
 };

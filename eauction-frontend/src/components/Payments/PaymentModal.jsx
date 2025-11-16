@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { X, Loader2, CreditCard, CheckCircle2 } from 'lucide-react';
 import { confirmPayment } from '../../services/paymentService';
 import Toast from '../Common/Toast';
+import PaymentSuccessModal from './PaymentSuccessModal';
 
 // Note: This is a mock payment UI for demonstration only. No real processing.
 const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
@@ -12,6 +13,8 @@ const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState(null);
   const [done, setDone] = useState(false);
+  const [successData, setSuccessData] = useState(null);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   // ✅ MOVE ALL HOOKS TO THE TOP - BEFORE ANY RETURNS
   const bidAmount = Number(auction?.winningBid || 0);
@@ -113,11 +116,10 @@ const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
       return;
     }
     setDone(true);
+    setSuccessData(data);
+    setShowSuccess(true);
     setToast({ type: 'success', title: 'Payment Successful', message: 'Item will be shipped soon.' });
-    setTimeout(() => {
-      onClose?.();
-      onSuccess?.(data);
-    }, 1800);
+    try { localStorage.setItem('dashboardRefresh', String(Date.now())); } catch {}
   };
 
   return (
@@ -232,6 +234,16 @@ const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
 
         {toast && <Toast type={toast.type} title={toast.title} message={toast.message} />}
       </div>
+
+      {showSuccess && (
+        <PaymentSuccessModal
+          isOpen={showSuccess}
+          onClose={() => { setShowSuccess(false); onClose?.(); onSuccess?.(successData); }}
+          data={successData}
+          item={{ itemImage: auction?.itemImage, itemName: auction?.itemName }}
+          onGoDashboard={() => { setShowSuccess(false); onClose?.(); window.location.href = '/dashboard'; }}
+        />
+      )}
     </div>
   );
 };

@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../../hooks/useAuth';
 import NotificationBell from '../Notifications/NotificationBell';
 import { useCart } from '../../context/CartContext';
+import Logo from '../Common/Logo.jsx';
 
 const getNavLinks = (isAuthenticated, userRoles) => {
   const baseLinks = [];
@@ -78,11 +79,8 @@ const Navbar = () => {
           >
             <Menu className="h-6 w-6" />
           </button>
-          <Link to="/" className="flex items-center gap-2 text-xl font-semibold text-primary-600">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary-500 to-secondary text-white shadow-lg">
-              🔨
-            </span>
-            <span className="tracking-tight">eAuction</span>
+          <Link to="/" className="group inline-flex items-center gap-2" aria-label="BidGrid Home">
+            <Logo size="large" showText className="transition duration-200 group-hover:scale-[1.02]" />
           </Link>
         </div>
 

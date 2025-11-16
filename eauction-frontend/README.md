@@ -1,16 +1,53 @@
-# React + Vite
+# BidGrid Frontend (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Premium React frontend for the BidGrid e-auction platform built with Vite, React Router, Tailwind CSS, and Axios.
 
-Currently, two official plugins are available:
+## Prerequisites
+- Node.js 18+ recommended
+- Backend API running at `http://localhost:8080/api` (or set `VITE_API_BASE_URL`)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Setup
+1) Install dependencies
+```powershell
+Set-Location "c:\Users\raksh\Documents\e-auction\eauction-frontend"
+npm install
+```
 
-## React Compiler
+2) Configure environment (optional)
+- Copy `.env.example` to `.env` and adjust as needed.
+- Default API base is `http://<host>:8080/api` if `VITE_API_BASE_URL` is not set.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Example `.env`:
+```
+VITE_API_BASE_URL=http://localhost:8080/api
+# Firebase (required only for Google Sign-In)
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
 
-## Expanding the ESLint configuration
+## Development
+Start the dev server (PowerShell):
+```powershell
+Set-Location "c:\Users\raksh\Documents\e-auction\eauction-frontend"
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+npm run dev
+```
+Vite will serve on `http://localhost:5173` (or next free port).
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Production build and preview
+```powershell
+Set-Location "c:\Users\raksh\Documents\e-auction\eauction-frontend"
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+npm run build
+npm run preview
+```
+Preview runs at `http://localhost:4173` by default.
+
+## Notes
+- If the page shows a generic error, the app’s ErrorBoundary provides a friendly fallback; check the browser console for the exact stack.
+- API calls log base URL and request info in development for easier debugging (`src/services/api.js`).
+- Google Sign-In requires Firebase env variables; without them, only that button will fail gracefully.

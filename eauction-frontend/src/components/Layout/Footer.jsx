@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, Linkedin, Mail, MapPin, Phone, Twitter } from 'lucide-react';
+import Logo from '../Common/Logo.jsx';
 
 const QUICK_LINKS = [
   { label: 'Home', to: '/' },
@@ -18,11 +19,14 @@ const SOCIAL_LINKS = [
 
 const FOOTER_ITEMS = [
   {
-    title: 'About eAuction',
+    title: 'About BidGrid',
     content: (
-      <p className="text-sm leading-relaxed text-white/70">
-        eAuction is a premium online bidding platform connecting discerning buyers with trusted sellers through secure, real-time auctions.
-      </p>
+      <div className="space-y-4">
+        <Logo size="default" variant="light" />
+        <p className="text-sm leading-relaxed text-white/70">
+          BidGrid is a premium online bidding platform connecting discerning buyers with trusted sellers through secure, real-time auctions.
+        </p>
+      </div>
     ),
   },
   {
@@ -45,7 +49,7 @@ const FOOTER_ITEMS = [
       <ul className="space-y-3 text-sm text-white/70">
         <li className="flex items-center gap-2">
           <Mail className="h-4 w-4 text-white/60" />
-          error404@eauction.com
+          hello@bidgrid.app
         </li>
         <li className="flex items-center gap-2">
           <Phone className="h-4 w-4 text-white/60" />
@@ -105,7 +109,7 @@ const Footer = () => (
         ))}
       </div>
       <div className="mt-12 border-t border-white/10 pt-6 text-center text-sm text-white/60">
-        <p>© {new Date().getFullYear()} eAuction. All rights reserved.</p>
+        <p>© {new Date().getFullYear()} BidGrid. All rights reserved.</p>
       </div>
     </div>
   </footer>

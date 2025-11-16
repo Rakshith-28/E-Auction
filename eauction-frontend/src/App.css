@@ -40,3 +40,26 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Premium form animations */
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* Error state helpers */
+.has-error > input,
+.has-error > textarea,
+.has-error > select {
+  border-color: rgb(239 68 68) !important; /* red-500 */
+}
+.has-error + p,
+.has-error .error-text {
+  color: rgb(239 68 68);
+}

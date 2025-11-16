@@ -45,6 +45,9 @@ const normalizeBaseUrl = (rawUrl) => {
 
 const BASE_URL = normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL);
 
+// ADD THIS LOGGING
+console.log('API Base URL:', BASE_URL);
+
 export const apiClient = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
@@ -58,6 +61,13 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
+    // ADD THIS LOGGING
+    console.log('=== API Request ===');
+    console.log('URL:', config.baseURL + config.url);
+    console.log('Method:', config.method);
+    console.log('Data:', config.data);
+    console.log('Headers:', config.headers);
+
     return config;
   },
   (error) => Promise.reject(error),
@@ -66,6 +76,12 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // ADD THIS LOGGING
+    console.error('=== API Error ===');
+    console.error('Status:', error.response?.status);
+    console.error('Response Data:', error.response?.data);
+    console.error('Error Message:', error.message);
+
     if (error.response?.status === 401) {
       clearToken();
     }
@@ -79,6 +95,11 @@ export const handleRequest = async (promise) => {
     const { data } = await promise;
     return [data, null];
   } catch (error) {
+    // ADD MORE SPECIFIC ERROR HANDLING
+    if (error.response?.data?.error) {
+      return [null, error.response.data.error]; // This matches your backend's error format
+    }
+    
     if (error.response?.data?.message) {
       return [null, error.response.data.message];
     }

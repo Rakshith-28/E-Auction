@@ -64,12 +64,12 @@ const ItemCard = ({ item, onClick }) => {
 
   return (
     <article
-      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl"
       onClick={go}
     >
       <div className="relative aspect-[4/3] w-full bg-slate-100">
         {item.imageUrl ? (
-          <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+          <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" />
         ) : (
           <div className="grid h-full w-full place-items-center text-slate-400">No image</div>
         )}
@@ -109,7 +109,7 @@ const ItemCard = ({ item, onClick }) => {
           })()}
         </div>
         <button
-          className="mt-3 inline-flex items-center justify-center rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-primary-700"
+          className="mt-3 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-primary-600 to-secondary px-3 py-2 text-sm font-semibold text-white shadow transition hover:shadow-lg"
           onClick={(e) => {
             e.stopPropagation();
             go();

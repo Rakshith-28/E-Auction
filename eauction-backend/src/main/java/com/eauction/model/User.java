@@ -62,6 +62,10 @@ public class User implements UserDetails {
 
     private String accountStatus; // ACTIVE, DEACTIVATED, DELETED
 
+    // Payment aggregates (mock): not authoritative, for quick stats
+    private Double totalSpent; // buyer
+    private Double revenue;    // seller
+
     private java.util.List<String> watchlist;
     private java.util.List<String> cart;
 

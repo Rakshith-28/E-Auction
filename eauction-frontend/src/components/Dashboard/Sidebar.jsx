@@ -65,7 +65,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { isBuyer, isSeller, user, roles } = useAuth();
-  const [open, setOpen] = useState({ buy: true, sell: isSeller, profile: !isBuyer && !isSeller });
+  const [open, setOpen] = useState({ buy: true, sell: isSeller });
   const [toast, setToast] = useState(null);
 
   useEffect(() => {
@@ -90,6 +90,7 @@ const Sidebar = () => {
   };
 
   const buyItems = useMemo(() => ([
+    { to: '/dashboard?tab=buy', icon: ShoppingBag, label: 'Dashboard (Buy)' },
     { to: '/items', icon: ShoppingBag, label: 'Browse Items' },
     { to: '/my-bids', icon: Gavel, label: 'My Active Bids' },
     { to: '/won-items', icon: Trophy, label: 'Won Items' },
@@ -98,6 +99,7 @@ const Sidebar = () => {
   ]), []);
 
   const sellItems = useMemo(() => ([
+    { to: '/dashboard?tab=sell', icon: Store, label: 'Dashboard (Sell)' },
     { to: '/sell/create', icon: Plus, label: 'Create Listing' },
     { to: '/sell/listings', icon: List, label: 'My Listings' },
     { to: '/sell/bids', icon: DollarSign, label: 'Received Bids' },
@@ -105,13 +107,7 @@ const Sidebar = () => {
     { to: '/sell/analytics', icon: BarChart2, label: 'Analytics', disabled: true },
   ]), []);
 
-  const profileItems = useMemo(() => ([
-    { to: '/profile', icon: Settings, label: 'Account Settings' },
-    { to: '/notifications', icon: BellIcon, label: 'Notifications' },
-    ...(onlyBuyer ? [{ to: '#add-seller', icon: Store, label: 'Add Seller Role', action: () => handleAddRole('SELLER') }] : []),
-    ...(onlySeller ? [{ to: '#add-buyer', icon: ShoppingBag, label: 'Add Buyer Role', action: () => handleAddRole('BUYER') }] : []),
-    { to: '/transactions', icon: History, label: 'Transaction History', disabled: true },
-  ]), [onlyBuyer, onlySeller]);
+  // Removed Profile section as per new design
 
   const renderMenu = (items) => (
     <ul className="space-y-1">
@@ -121,7 +117,11 @@ const Sidebar = () => {
             to={item.to}
             icon={item.icon}
             label={item.label}
-            active={activePath === item.to}
+            active={
+              item.to.startsWith('/dashboard?tab=')
+                ? (activePath === '/dashboard' && location.search.includes(item.to.split('=')[1]))
+                : activePath === item.to
+            }
             disabled={item.disabled}
             onClick={() => (item.action ? item.action() : navigate(item.to))}
           />
@@ -160,14 +160,6 @@ const Sidebar = () => {
           </Section>
         )}
 
-        <Section
-          title="Profile"
-          icon={User}
-          isOpen={open.profile}
-          onToggle={() => setOpen((s) => ({ ...s, profile: !s.profile }))}
-        >
-          {renderMenu(profileItems)}
-        </Section>
       </div>
 
       {toast && <Toast type={toast.type} title={toast.title} message={toast.message} />}

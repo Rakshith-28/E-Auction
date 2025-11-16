@@ -29,6 +29,10 @@ public class Auction {
     private Integer totalBids;
     private Boolean endingSoonNotified;
 
+    // Payment fields
+    private PaymentStatus paymentStatus; // PENDING, PAID, REFUNDED
+    private Instant paymentDate;
+
     @CreatedDate
     private Instant createdAt;
 

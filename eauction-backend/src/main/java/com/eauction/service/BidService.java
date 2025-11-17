@@ -118,17 +118,18 @@ public class BidService {
 
         private void notifyParticipants(Item item, User bidder, Bid previousHighest) {
         String actionUrl = "/items/" + item.getId();
+        String amountStr = com.eauction.util.CurrencyUtil.formatInr(item.getCurrentBid());
         notificationService.createNotification(
             item.getSellerId(),
             "New bid on " + item.getTitle(),
-            bidder.getName() + " placed a bid of $" + item.getCurrentBid(),
+            bidder.getName() + " placed a bid of " + amountStr,
             "NEW_BID_ON_ITEM",
             item.getId(), item.getTitle(), actionUrl
         );
         notificationService.createNotification(
             bidder.getId(),
             "Bid successful",
-            "You placed a bid of $" + item.getCurrentBid() + " on " + item.getTitle(),
+            "You placed a bid of " + amountStr + " on " + item.getTitle(),
             "BID_PLACED",
             item.getId(), item.getTitle(), actionUrl
         );
@@ -136,7 +137,7 @@ public class BidService {
             notificationService.createNotification(
                 previousHighest.getBidderId(),
                 "You've been outbid!",
-                "Someone bid higher on " + item.getTitle() + ". Current bid: $" + item.getCurrentBid(),
+                "Someone bid higher on " + item.getTitle() + ". Current bid: " + amountStr,
                 "OUTBID",
                 item.getId(), item.getTitle(), actionUrl
             );

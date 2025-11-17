@@ -3,6 +3,7 @@ import { X, Loader2, CreditCard, CheckCircle2 } from 'lucide-react';
 import { confirmPayment } from '../../services/paymentService';
 import Toast from '../Common/Toast';
 import PaymentSuccessModal from './PaymentSuccessModal';
+import { usdToInr, formatInr } from '../../utils/currencyUtils.js';
 
 // Note: This is a mock payment UI for demonstration only. No real processing.
 const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
@@ -17,9 +18,11 @@ const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   // ✅ MOVE ALL HOOKS TO THE TOP - BEFORE ANY RETURNS
-  const bidAmount = Number(auction?.winningBid || 0);
-  const fee = useMemo(() => Number((bidAmount * 0.02).toFixed(2)), [bidAmount]);
-  const total = useMemo(() => Number((bidAmount + fee).toFixed(2)), [bidAmount, fee]);
+  // Backend amount is in USD, convert to INR for display
+  const bidAmountUsd = Number(auction?.winningBid || 0);
+  const bidAmountInr = useMemo(() => usdToInr(bidAmountUsd), [bidAmountUsd]);
+  const feeInr = useMemo(() => bidAmountInr * 0.02, [bidAmountInr]);
+  const totalInr = useMemo(() => bidAmountInr + feeInr, [bidAmountInr, feeInr]);
 
   const cardType = useMemo(() => {
     const first = cardNumber.replace(/\s+/g, '')[0];
@@ -104,7 +107,7 @@ const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
       auctionId: resolvedAuctionId,
       itemId: resolvedItemId,
       userId: resolvedUserId,
-      amount: total, // include fee
+      amount: totalInr, // include fee in INR
       paymentMethod: 'mock_card'
     };
     console.log('[PaymentModal] Sending payment payload:', payload);
@@ -143,12 +146,12 @@ const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
             )}
             <div className="flex-1">
               <p className="font-semibold text-slate-900">{auction?.itemName || 'Auction Item'}</p>
-              <p className="text-sm text-slate-600">Winning Bid: ${bidAmount.toFixed(2)}</p>
-              <p className="text-sm text-slate-600">Processing Fee (2%): ${fee.toFixed(2)}</p>
+              <p className="text-sm text-slate-600">Winning Bid: ₹{formatInr(bidAmountUsd)}</p>
+              <p className="text-sm text-slate-600">Processing Fee (2%): ₹{feeInr.toFixed(2)}</p>
             </div>
             <div className="text-right">
               <p className="text-sm text-slate-500">Total</p>
-              <p className="text-lg font-semibold text-slate-900">${total.toFixed(2)}</p>
+              <p className="text-lg font-semibold text-slate-900">₹{totalInr.toFixed(2)}</p>
             </div>
           </div>
         </div>

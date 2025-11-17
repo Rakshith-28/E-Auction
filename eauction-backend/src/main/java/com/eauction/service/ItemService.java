@@ -59,6 +59,8 @@ public class ItemService {
         Item savedItem = itemRepository.save(item);
         createAuctionForItem(savedItem);
         log.info("Created item {} with auction between {} and {}", savedItem.getId(), savedItem.getAuctionStartTime(), savedItem.getAuctionEndTime());
+        log.info("Item saved with images: {}", savedItem.getImages());
+        System.out.println("Item saved with images: " + savedItem.getImages());
         return savedItem;
     }
 
@@ -100,6 +102,8 @@ public class ItemService {
         }
         Item updated = itemRepository.save(item);
         updateAuctionTimeline(updated);
+        log.info("Updated item {} images: {}", updated.getId(), updated.getImages());
+        System.out.println("Item updated with images: " + updated.getImages());
         return updated;
     }
 

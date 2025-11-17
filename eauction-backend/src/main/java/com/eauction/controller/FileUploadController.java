@@ -63,11 +63,12 @@ public class FileUploadController {
                 Path filePath = uploadPath.resolve(filename);
                 Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
                 
-                // Generate URL (adjust based on your deployment)
-                String imageUrl = "/uploads/" + filename;
+                // Generate absolute URL for frontend (different origin/port)
+                String imageUrl = "http://localhost:8080/uploads/" + filename;
                 imageUrls.add(imageUrl);
                 
                 log.info("Uploaded image: {} -> {}", originalFilename, imageUrl);
+                System.out.println("Image saved at: " + filePath.toAbsolutePath() + " (public: " + imageUrl + ")");
             }
             
             if (imageUrls.isEmpty()) {

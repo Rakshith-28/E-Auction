@@ -3,6 +3,7 @@ import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getMyBids } from '../services/bidService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
+import { formatInr } from '../utils/currencyUtils.js';
 import Toast from '../components/Common/Toast.jsx';
 
 const MyBidsPage = () => {
@@ -95,10 +96,10 @@ const MyBidsPage = () => {
                   <h2 className="text-lg font-semibold text-slate-900">{bid.item?.title ?? 'Auction'}</h2>
                   <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-600">
                     <p>
-                      Your bid: <span className="font-semibold text-slate-900">${Number.isFinite(bid.amount) ? bid.amount.toFixed(2) : bid.amount}</span>
+                      Your bid: <span className="font-semibold text-slate-900">₹{formatInr(bid.amount)}</span>
                     </p>
                     <p>
-                      Current bid: <span className="font-semibold text-slate-900">${currentBid.toFixed(2)}</span>
+                      Current bid: <span className="font-semibold text-slate-900">₹{formatInr(currentBid)}</span>
                     </p>
                     <p>
                       Total bids: <span className="font-semibold text-slate-900">{totalBids}</span>

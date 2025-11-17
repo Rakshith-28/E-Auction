@@ -5,6 +5,7 @@ import Loader from '../components/Common/Loader.jsx';
 import { getAuction } from '../services/auctionService.js';
 import { placeBid } from '../services/bidService.js';
 import { formatDateTime, timeRemaining } from '../utils/dateUtils.js';
+import { usdToInr, inrToUsd, formatInr } from '../utils/currencyUtils.js';
 
 const AuctionDetailsPage = () => {
   const { id } = useParams();
@@ -32,12 +33,15 @@ const AuctionDetailsPage = () => {
     fetchAuction();
   }, [id]);
 
-  const minimumBid = useMemo(() => {
+  // Calculate minimum bid in USD, then convert to INR
+  const minimumBidUsd = useMemo(() => {
     if (!auction) return 0;
     const current = auction.currentBidAmount ?? 0;
     const minimum = auction.item?.minimumBid ?? 0;
     return Math.max(current, minimum);
   }, [auction]);
+  
+  const minimumBidInr = useMemo(() => usdToInr(minimumBidUsd), [minimumBidUsd]);
 
   const handleBidSubmit = async (event) => {
     event.preventDefault();
@@ -46,17 +50,20 @@ const AuctionDetailsPage = () => {
       setBidError('Item information is unavailable for this auction.');
       return;
     }
-    const nextBid = Number.parseFloat(bidAmount);
+    // User enters INR, validate against INR minimum
+    const nextBidInr = Number.parseFloat(bidAmount);
 
-    if (Number.isNaN(nextBid) || nextBid <= minimumBid) {
-      setBidError(`Bid must be greater than ${minimumBid.toFixed(2)}`);
+    if (Number.isNaN(nextBidInr) || nextBidInr <= minimumBidInr) {
+      setBidError(`Bid must be greater than ₹${minimumBidInr.toFixed(2)}`);
       return;
     }
 
+    // Convert INR to USD before sending to backend
+    const nextBidUsd = inrToUsd(nextBidInr);
     setPlacingBid(true);
     const [, placeBidError] = await placeBid({
       itemId: auction.item.id,
-      bidAmount: nextBid,
+      bidAmount: nextBidUsd,
     });
     setPlacingBid(false);
 
@@ -122,7 +129,7 @@ const AuctionDetailsPage = () => {
               </div>
               <div>
                 <dt className="font-medium text-slate-900">Minimum bid</dt>
-                <dd className="mt-1">${(item?.minimumBid ?? 0).toFixed(2)}</dd>
+                <dd className="mt-1">₹{formatInr(item?.minimumBid ?? 0)}</dd>
               </div>
               <div>
                 <dt className="font-medium text-slate-900">Start time</dt>
@@ -150,7 +157,7 @@ const AuctionDetailsPage = () => {
               <ul className="mt-4 space-y-3">
                 {bids.map((bid) => (
                   <li key={bid.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-surface px-4 py-3 text-sm">
-                    <span className="font-medium text-slate-900">${bid.amount.toFixed(2)}</span>
+                    <span className="font-medium text-slate-900">₹{formatInr(bid.amount)}</span>
                       <span className="text-slate-500">{formatDateTime(bid.timestamp)}</span>
                   </li>
                 ))}
@@ -161,19 +168,20 @@ const AuctionDetailsPage = () => {
 
         <aside className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Place a bid</h2>
-          <p className="mt-2 text-sm text-slate-600">Enter an amount greater than ${minimumBid.toFixed(2)}.</p>
+          <p className="mt-2 text-sm text-slate-600">Enter an amount greater than ₹{minimumBidInr.toFixed(2)}.</p>
           <form className="mt-6 space-y-4" onSubmit={handleBidSubmit}>
             <div>
               <label htmlFor="bid" className="block text-sm font-medium text-slate-700">
-                Bid amount
+                Bid amount (₹)
               </label>
               <input
                 id="bid"
                 type="number"
-                min={minimumBid + 0.01}
-                step="0.01"
+                min={minimumBidInr + 1}
+                step="1"
                 value={bidAmount}
                 onChange={(event) => setBidAmount(event.target.value)}
+                placeholder={`Minimum: ₹${minimumBidInr.toFixed(2)}`}
                 className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
                 required
               />

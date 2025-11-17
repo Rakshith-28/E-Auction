@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { getNotifications, markAsRead, markAsUnread, deleteNotification, clearReadNotifications } from '../services/notificationService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
 import { Bell, Filter, X, Trash2, RefreshCw } from 'lucide-react';
+import { usdToInr } from '../utils/currencyUtils.js';
 
 const typeGroups = [
   { label: 'All', value: '' },
@@ -91,6 +92,14 @@ const NotificationCenterPage = () => {
     return formatDateTime(iso);
   };
 
+  const renderMessage = (raw) => {
+    const msg = raw || '';
+    return msg.replace(/\$(\d+(?:\.\d+)?)/g, (_, num) => {
+      const inr = usdToInr(parseFloat(num));
+      return `₹${inr.toFixed(2)}`;
+    });
+  };
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="flex items-start justify-between gap-4">
@@ -145,7 +154,7 @@ const NotificationCenterPage = () => {
                   <h2 className={`text-sm font-semibold ${n.read ? 'text-slate-800' : 'text-indigo-700'}`}>{n.title}</h2>
                   <span className="text-xs text-slate-400">{relativeTime(n.createdAt)}</span>
                 </div>
-                <p className="mt-1 text-sm text-slate-600">{n.message}</p>
+                <p className="mt-1 text-sm text-slate-600">{renderMessage(n.message)}</p>
                 {n.itemTitle && (
                   <p className="mt-1 text-xs text-slate-500">Item: {n.itemTitle}</p>
                 )}

@@ -3,6 +3,7 @@ import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getBidsOnMyItems } from '../services/bidService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
+import { formatInr } from '../utils/currencyUtils.js';
 
 const ReceivedBidsPage = () => {
   const [bids, setBids] = useState([]);
@@ -48,7 +49,7 @@ const ReceivedBidsPage = () => {
                 <div className="text-slate-500">{formatDateTime(b.timestamp)}</div>
                 <div className="font-medium text-slate-900">{b.item?.title ?? 'Item'}</div>
                 <div className="text-slate-700">{b.bidderName ?? 'User'}</div>
-                <div className="md:text-right">${b.amount?.toFixed?.(2) ?? b.amount}</div>
+                <div className="md:text-right">₹{formatInr(b.amount)}</div>
                 <div className="md:text-right">{b.status ?? '-'}</div>
               </li>
             ))}

@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { X, Loader2, CheckCircle2, TrendingUp } from 'lucide-react';
 import Toast from '../Common/Toast';
+import { formatInr, usdToInr } from '../../utils/currencyUtils';
 
 const BidConfirmationModal = ({
   isOpen,
@@ -22,7 +23,8 @@ const BidConfirmationModal = ({
     }
   }, [isOpen]);
 
-  const isHigher = useMemo(() => Number(bidAmount) > Number(currentBid || 0), [bidAmount, currentBid]);
+  const currentBidInr = useMemo(() => usdToInr(currentBid || 0), [currentBid]);
+  const isHigher = useMemo(() => Number(bidAmount) > currentBidInr, [bidAmount, currentBidInr]);
 
   if (!isOpen) return null;
 
@@ -68,11 +70,11 @@ const BidConfirmationModal = ({
               <div className="mt-2 grid gap-1 text-sm">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600">Current Highest</span>
-                  <span className="font-semibold text-slate-900">${Number(currentBid || 0).toFixed(2)}</span>
+                  <span className="font-semibold text-slate-900">₹{currentBidInr.toFixed(2)}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600 inline-flex items-center gap-1">Your Bid <TrendingUp className="h-4 w-4 text-slate-400" /></span>
-                  <span className={"font-semibold " + (isHigher ? 'text-green-600' : 'text-amber-600')}>${Number(bidAmount || 0).toFixed(2)}</span>
+                  <span className={"font-semibold " + (isHigher ? 'text-green-600' : 'text-amber-600')}>₹{Number(bidAmount || 0).toFixed(2)}</span>
                 </div>
               </div>
             </div>

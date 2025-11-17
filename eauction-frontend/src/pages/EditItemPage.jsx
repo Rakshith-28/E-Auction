@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getItem, updateItem } from '../services/itemService.js';
+import { usdToInr, inrToUsd } from '../utils/currencyUtils.js';
 
 const EditItemPage = () => {
   const { id } = useParams();
@@ -24,12 +25,14 @@ const EditItemPage = () => {
       } else if (data) {
         const startStr = data.auctionStartTime ? new Date(data.auctionStartTime).toISOString().slice(0, 16) : '';
         const endStr = data.auctionEndTime ? new Date(data.auctionEndTime).toISOString().slice(0, 16) : '';
+        // Convert USD minimum bid from backend to INR for display
+        const minimumBidInr = data.minimumBid ? usdToInr(data.minimumBid) : 0;
         setFormState({
           title: data.title ?? '',
           description: data.description ?? '',
           category: data.category ?? '',
           imageUrl: data.imageUrl ?? '',
-          minimumBid: data.minimumBid?.toString() ?? '',
+          minimumBid: minimumBidInr.toString(),
           auctionStartTime: startStr,
           auctionEndTime: endStr,
         });
@@ -59,12 +62,16 @@ const EditItemPage = () => {
     setError(null);
     setSaving(true);
 
+    // Convert INR input to USD for backend
+    const minimumBidInr = Number.parseFloat(formState.minimumBid);
+    const minimumBidUsd = inrToUsd(minimumBidInr);
+
     const payload = {
       title: formState.title,
       description: formState.description,
       category: formState.category,
       imageUrl: formState.imageUrl,
-      minimumBid: Number.parseFloat(formState.minimumBid),
+      minimumBid: minimumBidUsd,
     };
 
     // Only include times if user changed and backend rules allow
@@ -173,7 +180,7 @@ const EditItemPage = () => {
 
           <div>
             <label htmlFor="minimumBid" className="block text-sm font-medium text-slate-700">
-              Minimum bid ($)
+              Minimum bid (₹)
             </label>
             <input
               id="minimumBid"

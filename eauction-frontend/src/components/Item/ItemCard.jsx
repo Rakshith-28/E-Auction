@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import CountdownTimer from '../Common/CountdownTimer';
 import { Heart, ShoppingCart } from 'lucide-react';
+import { formatInr } from '../../utils/currencyUtils';
 import { addToWatchlist, removeFromWatchlist, checkWatchlist } from '../../services/watchlistService.js';
 import { useCart } from '../../context/CartContext.jsx';
 import { checkInCart as apiCheckInCart } from '../../services/cartService.js';
@@ -64,16 +65,30 @@ const ItemCard = ({ item, onClick }) => {
 
   return (
     <article
-      className="group flex cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl"
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/95 shadow-lg backdrop-blur transition hover:-translate-y-0.5 hover:shadow-xl"
       onClick={go}
     >
-      <div className="relative aspect-[4/3] w-full bg-gradient-to-br from-slate-100 to-slate-200">
-        <img 
-          src={item.images?.[0] || item.imageUrl || 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image'} 
-          alt={item.title} 
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]" 
-          onError={(e) => { e.target.src = 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image'; }}
-        />
+      <div className="relative h-48 w-full shrink-0 overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+        {(() => {
+          const raw = item.images?.[0] || item.imageUrl;
+          const src = (() => {
+            if (!raw) return 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image';
+            if (raw.startsWith('http')) return raw;
+            const uploadsIdx = raw.indexOf('/uploads/');
+            const path = uploadsIdx >= 0
+              ? raw.substring(uploadsIdx)
+              : (raw.startsWith('/uploads') ? raw : `/uploads/${raw}`);
+            return `http://localhost:8080${path}`;
+          })();
+          return (
+            <img
+              src={src}
+              alt={item.title}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              onError={(e) => { e.target.src = 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image'; }}
+            />
+          );
+        })()}
         {item.category && (
           <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-700 shadow">
             {item.category}
@@ -99,7 +114,7 @@ const ItemCard = ({ item, onClick }) => {
       <div className="flex flex-1 flex-col p-4">
         <h3 className="line-clamp-2 text-sm font-semibold text-slate-900">{item.title}</h3>
         <div className="mt-2 flex items-center justify-between text-sm">
-          <div className="font-semibold text-slate-900">${Number(item.currentBid ?? item.minimumBid ?? 0).toFixed(2)}</div>
+          <div className="font-semibold text-slate-900">₹{formatInr(item.currentBid ?? item.minimumBid ?? 0)}</div>
           {item.auctionEndTime && <CountdownTimer endTime={item.auctionEndTime} />}
         </div>
         <div className="mt-1 text-xs text-slate-500">

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { CheckCircle2, Download, LayoutDashboard, X } from 'lucide-react';
+import { formatInr } from '../../utils/currencyUtils.js';
 
-const formatAmount = (n) => `$${Number(n || 0).toFixed(2)}`;
+const formatAmount = (n) => `₹${formatInr(n || 0)}`;
 
 const Confetti = () => {
   // Lightweight CSS-based confetti

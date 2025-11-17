@@ -4,6 +4,7 @@ import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { deleteItem, getMyItems } from '../services/itemService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
+import { formatInr } from '../utils/currencyUtils.js';
 
 const MyItemsPage = () => {
   const [items, setItems] = useState([]);
@@ -78,7 +79,7 @@ const MyItemsPage = () => {
                   </div>
                   <div>
                     <dt className="font-medium text-slate-900">Minimum bid</dt>
-                    <dd className="mt-1">${item.minimumBid?.toFixed?.(2) ?? '0.00'}</dd>
+                    <dd className="mt-1">₹{formatInr(item.minimumBid ?? 0)}</dd>
                   </div>
                   <div>
                     <dt className="font-medium text-slate-900">Status</dt>

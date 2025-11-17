@@ -6,16 +6,20 @@ import CountdownTimer from '../components/Common/CountdownTimer.jsx';
 import Toast from '../components/Common/Toast.jsx';
 import { getItem } from '../services/itemService.js';
 import { getBidsForItem, placeBid } from '../services/bidService.js';
+import { getUserById } from '../services/userService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
+import { formatInr, usdToInr, inrToUsd } from '../utils/currencyUtils.js';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext.jsx';
 import { checkInCart as apiCheckInCart } from '../services/cartService.js';
 import BidConfirmationModal from '../components/Auction/BidConfirmationModal.jsx';
+import SellerContactCard from '../components/Item/SellerContactCard.jsx';
 
 const ItemDetailsPage = () => {
   const { id } = useParams();
   const { user } = useAuth();
   const [item, setItem] = useState(null);
+  const [seller, setSeller] = useState(null);
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -34,7 +38,14 @@ const ItemDetailsPage = () => {
       getBidsForItem(id),
     ]);
     if (itemErr) setError(itemErr);
-    else setItem(itemData);
+    else {
+      setItem(itemData);
+      // Fetch seller information if sellerId exists
+      if (itemData?.sellerId) {
+        const [sellerData] = await getUserById(itemData.sellerId);
+        if (sellerData) setSeller(sellerData);
+      }
+    }
     if (!bidsErr && bidsData) setBids(bidsData);
     setLoading(false);
   };
@@ -80,26 +91,29 @@ const ItemDetailsPage = () => {
     return Math.max(current, minimum);
   }, [item]);
 
+  const minimumBidInr = useMemo(() => usdToInr(minimumBid), [minimumBid]);
+
   const handleBid = async (e) => {
     e.preventDefault();
     if (!item) return;
-    const amount = Number.parseFloat(bidAmount);
-    if (Number.isNaN(amount) || amount <= minimumBid) {
-      setToast({ type: 'error', title: 'Invalid bid', message: `Bid must be greater than ${minimumBid.toFixed(2)}` });
+    const amountInr = Number.parseFloat(bidAmount);
+    if (Number.isNaN(amountInr) || amountInr <= minimumBidInr) {
+      setToast({ type: 'error', title: 'Invalid bid', message: `Bid must be greater than ₹${minimumBidInr.toFixed(2)}` });
       return;
     }
     if (user && item.sellerId === user.id) {
       setToast({ type: 'error', title: 'Not allowed', message: 'You cannot bid on your own item.' });
       return;
     }
-    setPendingBid(amount);
+    setPendingBid(amountInr);
     setConfirmOpen(true);
   };
 
   const confirmPlaceBid = async () => {
     if (!item || !pendingBid) return false;
     setPlacing(true);
-    const [, err] = await placeBid({ itemId: item.id, bidAmount: pendingBid });
+    const bidAmountUsd = inrToUsd(pendingBid);
+    const [, err] = await placeBid({ itemId: item.id, bidAmount: bidAmountUsd });
     setPlacing(false);
     if (err) {
       setToast({ type: 'error', title: 'Bid failed', message: err });
@@ -176,12 +190,26 @@ const ItemDetailsPage = () => {
         <div className="space-y-6">
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="relative mx-auto aspect-[4/3] w-full max-w-lg bg-gradient-to-br from-slate-100 to-slate-200">
-              <img 
-                src={item.images?.[0] || item.imageUrl || 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image'} 
-                alt={item.title} 
-                className="h-full w-full object-cover"
-                onError={(e) => { e.target.src = 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image'; }}
-              />
+              {(() => {
+                const raw = item.images?.[0] || item.imageUrl;
+                const src = (() => {
+                  if (!raw) return 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image';
+                  if (raw.startsWith('http')) return raw;
+                  const uploadsIdx = raw.indexOf('/uploads/');
+                  const path = uploadsIdx >= 0
+                    ? raw.substring(uploadsIdx)
+                    : (raw.startsWith('/uploads') ? raw : `/uploads/${raw}`);
+                  return `http://localhost:8080${path}`;
+                })();
+                return (
+                  <img
+                    src={src}
+                    alt={item.title}
+                    className="h-full w-full object-cover"
+                    onError={(e) => { e.target.src = 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image'; }}
+                  />
+                );
+              })()}
             </div>
             <div className="grid gap-4 p-6 text-sm text-slate-600 md:grid-cols-2">
               <div>
@@ -190,7 +218,7 @@ const ItemDetailsPage = () => {
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-500">Minimum bid</div>
-                <div className="mt-1 text-slate-900">${(item.minimumBid ?? 0).toFixed(2)}</div>
+                <div className="mt-1 text-slate-900">₹{formatInr(item.minimumBid ?? 0)}</div>
               </div>
               <div>
                 <div className="text-xs font-medium text-slate-500">Auction ends</div>
@@ -213,19 +241,22 @@ const ItemDetailsPage = () => {
               <ul className="mt-3 space-y-2">
                 {bids.map((b) => (
                   <li key={b.id} className="flex items-center justify-between rounded-xl border border-slate-100 bg-surface px-4 py-3 text-sm">
-                    <span className="font-medium text-slate-900">${b.amount?.toFixed?.(2) ?? b.amount}</span>
+                    <span className="font-medium text-slate-900">₹{formatInr(b.amount)}</span>
                     <span className="text-slate-500">{formatDateTime(b.timestamp)}</span>
                   </li>
                 ))}
               </ul>
             )}
           </div>
+
+          {/* Seller Contact Information */}
+          <SellerContactCard seller={seller} item={item} />
         </div>
 
         <aside className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-lg font-semibold text-slate-900">Auction</h2>
           <div className="mt-2 text-sm text-slate-600">Current highest bid</div>
-          <div className="mt-1 text-3xl font-bold text-slate-900">${(item.currentBid ?? item.minimumBid ?? 0).toFixed(2)}</div>
+          <div className="mt-1 text-3xl font-bold text-slate-900">₹{formatInr(item.currentBid ?? item.minimumBid ?? 0)}</div>
           <button
             type="button"
             onClick={handleCartToggle}
@@ -236,15 +267,16 @@ const ItemDetailsPage = () => {
           </button>
           <form onSubmit={handleBid} className="mt-6 space-y-4">
             <div>
-              <label className="text-sm font-medium text-slate-700">Your bid</label>
+              <label className="text-sm font-medium text-slate-700">Your bid (in ₹)</label>
               <input
                 type="number"
-                min={minimumBid + 0.01}
-                step="0.01"
+                min={minimumBidInr + 1}
+                step="1"
                 value={bidAmount}
                 onChange={(e) => setBidAmount(e.target.value)}
                 disabled={isEnded}
                 className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm"
+                placeholder={`Minimum: ₹${minimumBidInr.toFixed(2)}`}
                 required
               />
             </div>

@@ -4,6 +4,7 @@ import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getActiveAuctions } from '../services/auctionService.js';
 import { formatDateTime, timeRemaining } from '../utils/dateUtils.js';
+import { formatInr } from '../utils/currencyUtils.js';
 
 const AuctionsPage = () => {
   const [auctions, setAuctions] = useState([]);
@@ -55,7 +56,7 @@ const AuctionsPage = () => {
             <dl className="mt-4 space-y-1 text-sm text-slate-500">
               <div className="flex justify-between">
                 <dt>Current bid</dt>
-                <dd className="font-semibold text-slate-900">${auction.currentBidAmount?.toFixed?.(2) ?? '0.00'}</dd>
+                <dd className="font-semibold text-slate-900">₹{formatInr(auction.currentBidAmount ?? 0)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Ends</dt>

@@ -5,6 +5,7 @@ import { createItem } from '../services/itemService.js';
 import { uploadImages } from '../services/uploadService.js';
 import CreateItemConfirmationModal from '../components/Item/CreateItemConfirmationModal.jsx';
 import Toast from '../components/Common/Toast.jsx';
+import { inrToUsd } from '../utils/currencyUtils.js';
 import {
   PackagePlus,
   Type as TypeIcon,
@@ -112,11 +113,14 @@ const CreateItemPage = () => {
       ? new Date(formState.auctionStartTime).toISOString()
       : new Date().toISOString();
 
+    const minimumBidInr = Number.parseFloat(formState.minimumBid);
+    const minimumBidUsd = inrToUsd(minimumBidInr);
+
     const payload = {
       title: formState.title,
       description: formState.description,
       category: formState.category,
-      minimumBid: Number.parseFloat(formState.minimumBid),
+      minimumBid: minimumBidUsd,
       auctionStartTime: startTime,
       auctionEndTime: formState.auctionEndTime ? new Date(formState.auctionEndTime).toISOString() : null,
     };
@@ -282,7 +286,7 @@ const CreateItemPage = () => {
                   step="0.01"
                   value={formState.minimumBid}
                   onChange={handleChange}
-                  placeholder="Minimum bid ($)"
+                  placeholder="Minimum bid (₹)"
                   className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none transition focus:border-primary-500 focus:ring-4 focus:ring-primary-100"
                   required
                 />

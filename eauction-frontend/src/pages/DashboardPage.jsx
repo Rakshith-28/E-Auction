@@ -7,6 +7,7 @@ import { getUserStats } from '../services/userService';
 import { getMyBids, getBidsOnMyItems } from '../services/bidService';
 import { getMyItems } from '../services/itemService';
 import { getPaymentSummary } from '../services/paymentService';
+import { formatInr } from '../utils/currencyUtils.js';
 
 const ProfileDashboardPage = () => {
   const { isBuyer, isSeller, user } = useAuth();
@@ -323,7 +324,7 @@ const CountUp = ({ to = 0, duration = 600, format }) => {
   }, [to, duration]);
 
   const display = format === 'currency'
-    ? `$${Number(val).toFixed(2)}`
+    ? `₹${formatInr(val)}`
     : Math.round(val).toString();
 
   return <span>{display}</span>;

@@ -170,7 +170,7 @@ const BrowseItemsPage = () => {
 
             {/* Price Range toggle */}
             <FilterPill active={showPrice || minPrice !== 0 || maxPrice !== 5000} onClick={() => setShowPrice((v) => !v)}>
-              $ Price
+              ₹ Price
               <ChevronDown className={`h-4 w-4 transition ${showPrice ? 'rotate-180' : ''}`} />
             </FilterPill>
 
@@ -198,7 +198,7 @@ const BrowseItemsPage = () => {
           ">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="flex-1">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Min Price ${minPrice}</label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Min Price ₹{minPrice}</label>
                 <input
                   type="range"
                   min={0}
@@ -209,7 +209,7 @@ const BrowseItemsPage = () => {
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Max Price ${maxPrice}</label>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500">Max Price ₹{maxPrice}</label>
                 <input
                   type="range"
                   min={0}
@@ -357,11 +357,11 @@ const BrowseItemsPage = () => {
                 <label className="text-xs font-semibold text-slate-500">Price Range</label>
                 <div className="mt-2 flex gap-4">
                   <div className="flex-1">
-                    <span className="block text-[10px] font-medium text-slate-500">Min ${minPrice}</span>
+                    <span className="block text-[10px] font-medium text-slate-500">Min ₹{minPrice}</span>
                     <input type="range" min={0} max={5000} value={minPrice} onChange={(e) => setMinPrice(Number(e.target.value))} className="w-full accent-indigo-600" />
                   </div>
                   <div className="flex-1">
-                    <span className="block text-[10px] font-medium text-slate-500">Max ${maxPrice}</span>
+                    <span className="block text-[10px] font-medium text-slate-500">Max ₹{maxPrice}</span>
                     <input type="range" min={0} max={5000} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-purple-600" />
                   </div>
                 </div>

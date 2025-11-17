@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getNotifications, getUnreadCount, markAsRead, markAllRead, deleteNotification } from '../../services/notificationService.js';
+import { usdToInr } from '../../utils/currencyUtils.js';
 import { formatDateTime } from '../../utils/dateUtils.js';
 
 const NotificationBell = () => {
@@ -67,6 +68,14 @@ const NotificationBell = () => {
     }
   };
 
+  const renderMessage = (raw) => {
+    const msg = raw || '';
+    return msg.replace(/\$(\d+(?:\.\d+)?)/g, (_, num) => {
+      const inr = usdToInr(parseFloat(num));
+      return `₹${inr.toFixed(2)}`;
+    });
+  };
+
   if (error) {
     return <button type="button" className="relative rounded-full p-2 text-red-600" title={error}>
       <span className="sr-only">Notifications error</span>
@@ -129,7 +138,7 @@ const NotificationBell = () => {
                   <span className={`mt-1 h-2 w-2 rounded-full shrink-0 ${notification.read ? 'bg-slate-300' : 'bg-indigo-500'}`} />
                   <div className="flex-1 text-sm text-slate-600">
                     <p className="font-medium text-slate-900">{notification.title ?? 'Update'}</p>
-                    <p className="mt-1 text-slate-600">{notification.message ?? notification.body}</p>
+                    <p className="mt-1 text-slate-600">{renderMessage(notification.message ?? notification.body)}</p>
                     <p className="mt-2 text-xs text-slate-400">{formatDateTime(notification.createdAt)}</p>
                   </div>
                   <div className="flex shrink-0 gap-1" onClick={(e) => e.stopPropagation()}>

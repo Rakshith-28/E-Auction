@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, Loader2, CheckCircle2, Package } from 'lucide-react';
 import Toast from '../Common/Toast';
+import { formatInr } from '../../utils/currencyUtils.js';
 
 const CreateItemConfirmationModal = ({
   isOpen,
@@ -73,7 +74,7 @@ const CreateItemConfirmationModal = ({
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-slate-600">Min. Bid</span>
-                  <span className="font-semibold text-green-600">${Number(itemData?.minimumBid || 0).toFixed(2)}</span>
+                  <span className="font-semibold text-green-600">₹{formatInr(itemData?.minimumBid || 0)}</span>
                 </div>
               </div>
             </div>

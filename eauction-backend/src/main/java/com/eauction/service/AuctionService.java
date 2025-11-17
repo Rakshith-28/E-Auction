@@ -75,23 +75,23 @@ public class AuctionService {
                     if (item == null) return;
                     String actionUrl = "/items/" + item.getId();
                     // Seller notification
-                    notificationService.createNotification(
+                        notificationService.createNotification(
                             item.getSellerId(),
                             "Auction ending soon!",
-                            item.getTitle() + " ends in 1 hour. Current bid: $" + (item.getCurrentBid() == null ? 0 : item.getCurrentBid()),
+                            item.getTitle() + " ends in 1 hour. Current bid: " + com.eauction.util.CurrencyUtil.formatInr(item.getCurrentBid() == null ? 0.0 : item.getCurrentBid()),
                             "AUCTION_ENDING_SOON",
                             item.getId(), item.getTitle(), actionUrl
-                    );
+                        );
                     // Highest bidder notification
                     List<Bid> bids = bidRepository.findByItemIdOrderByBidAmountDesc(item.getId());
                     if (!bids.isEmpty()) {
                         Bid highest = bids.get(0);
                         notificationService.createNotification(
-                                highest.getBidderId(),
-                                "Auction ending soon!",
-                                item.getTitle() + " ends in 1 hour. Current bid: $" + (item.getCurrentBid() == null ? 0 : item.getCurrentBid()),
-                                "AUCTION_ENDING_SOON",
-                                item.getId(), item.getTitle(), actionUrl
+                            highest.getBidderId(),
+                            "Auction ending soon!",
+                            item.getTitle() + " ends in 1 hour. Current bid: " + com.eauction.util.CurrencyUtil.formatInr(item.getCurrentBid() == null ? 0.0 : item.getCurrentBid()),
+                            "AUCTION_ENDING_SOON",
+                            item.getId(), item.getTitle(), actionUrl
                         );
                     }
                     a.setEndingSoonNotified(true);
@@ -190,7 +190,7 @@ public class AuctionService {
                 emailService.sendEmail(
                         seller.getEmail(),
                         "Your item was sold",
-                        "Your item " + item.getTitle() + " sold for $" + winningBid.getBidAmount() + "."
+                        "Your item " + item.getTitle() + " sold for " + com.eauction.util.CurrencyUtil.formatInr(winningBid.getBidAmount()) + "."
                 );
             }
         });
@@ -200,14 +200,14 @@ public class AuctionService {
             notificationService.createNotification(
                 winner.getId(),
                 "Congratulations!",
-                "You won " + item.getTitle() + " for $" + winningBid.getBidAmount(),
+                "You won " + item.getTitle() + " for " + com.eauction.util.CurrencyUtil.formatInr(winningBid.getBidAmount()),
                 "AUCTION_WON",
                 item.getId(), item.getTitle(), actionUrl
             );
                 emailService.sendEmail(
                         winner.getEmail(),
                         "You won the auction",
-                        "Congratulations! You won " + item.getTitle() + " for $" + winningBid.getBidAmount() + "."
+                        "Congratulations! You won " + item.getTitle() + " for " + com.eauction.util.CurrencyUtil.formatInr(winningBid.getBidAmount()) + "."
                 );
             });
         }
@@ -218,7 +218,7 @@ public class AuctionService {
                 notificationService.createNotification(
                     bid.getBidderId(),
                     winningBid != null ? "Auction ended" : "Auction ended",
-                    winningBid != null ? ("You didn't win " + item.getTitle() + ". Final price: $" + winningBid.getBidAmount())
+                    winningBid != null ? ("You didn't win " + item.getTitle() + ". Final price: " + com.eauction.util.CurrencyUtil.formatInr(winningBid.getBidAmount()))
                         : ("The auction for " + item.getTitle() + " ended without a winner."),
                     winningBid != null ? "AUCTION_LOST" : "AUCTION_CLOSED",
                     item.getId(), item.getTitle(), actionUrl
@@ -232,7 +232,7 @@ public class AuctionService {
         }
         User buyer = userRepository.findById(winningBid.getBidderId()).orElse(null);
         String buyerName = buyer != null ? buyer.getName() : "the winning bidder";
-        return "Your item " + item.getTitle() + " sold to " + buyerName + " for $" + winningBid.getBidAmount();
+        return "Your item " + item.getTitle() + " sold to " + buyerName + " for " + com.eauction.util.CurrencyUtil.formatInr(winningBid.getBidAmount());
     }
 
     private AuctionResponse toAuctionResponse(Auction auction, boolean includeBids) {

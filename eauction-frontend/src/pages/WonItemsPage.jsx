@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import PaymentModal from '../components/Payments/PaymentModal.jsx';
 import { paymentExists } from '../services/paymentService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
+import { formatInr } from '../utils/currencyUtils.js';
 
 const WonItemsPage = () => {
   const [items, setItems] = useState([]);
@@ -80,7 +81,7 @@ const WonItemsPage = () => {
             <article key={b.id} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">{b.item?.title ?? 'Item'}</h2>
-                <p className="mt-1 text-sm text-slate-600">Winning bid: ${b.amount?.toFixed?.(2) ?? b.amount}</p>
+                <p className="mt-1 text-sm text-slate-600">Winning bid: ₹{formatInr(b.amount)}</p>
                 <p className="text-xs text-slate-500">Date won: {formatDateTime(b.timestamp)}</p>
               </div>
               <div className="text-right">

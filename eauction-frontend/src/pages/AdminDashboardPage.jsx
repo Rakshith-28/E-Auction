@@ -3,7 +3,7 @@ import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { useAuth } from '../hooks/useAuth.js';
 import { deleteUser, getDashboard, getUsers } from '../services/adminService.js';
-import { usdToInr } from '../utils/currencyUtils.js';
+import { formatInrLocale } from '../utils/currencyUtils.js';
 
 const AdminDashboardPage = () => {
   const { user: currentUser } = useAuth();
@@ -69,7 +69,7 @@ const AdminDashboardPage = () => {
             { label: 'Total users', value: metrics.totalUsers },
             { label: 'Total items', value: metrics.totalItems },
             { label: 'Active auctions', value: metrics.activeAuctions },
-            { label: 'Total revenue', value: `₹${usdToInr(metrics.totalRevenue ?? 0).toLocaleString()}` },
+            { label: 'Total revenue', value: `₹${formatInrLocale(metrics.totalRevenue ?? 0)}` },
           ].map((card) => (
             <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <p className="text-sm font-medium text-slate-500">{card.label}</p>

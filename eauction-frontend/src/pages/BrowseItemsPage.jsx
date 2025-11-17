@@ -8,7 +8,32 @@ import { getActiveItems } from '../services/itemService.js';
 import { Filter, ChevronDown, X, SlidersHorizontal, Clock, Tag, AlertCircle, RefreshCw } from 'lucide-react';
 
 // Primary filter options
-const CATEGORIES = ['All', 'Electronics', 'Fashion', 'Home', 'Sports'];
+const CATEGORIES = [
+  'All',
+  'Electronics',
+  'Computers',
+  'Mobile',
+  'Fashion',
+  'Jewelry',
+  'Collectibles',
+  'Home',
+  'Furniture',
+  'Appliances',
+  'Kitchen',
+  'Sports',
+  'Outdoor',
+  'Music',
+  'Books',
+  'Toys',
+  'Automotive',
+  'Tools',
+  'Health',
+  'Baby',
+  'Pets',
+  'Office',
+  'Groceries',
+  'Other',
+];
 const SORTS = [
   { value: 'auctionEndTime,asc', label: 'Ending soon' },
   { value: 'auctionEndTime,desc', label: 'Ending latest' },
@@ -31,7 +56,7 @@ const BrowseItemsPage = () => {
   const [category, setCategory] = useState('All');
   const [sort, setSort] = useState(SORTS[0].value);
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(5000);
+  const [maxPrice, setMaxPrice] = useState(100000);
   const [showPrice, setShowPrice] = useState(false);
   const [statusFilter, setStatusFilter] = useState('Any');
   const [timeFilter, setTimeFilter] = useState('Any');
@@ -54,15 +79,18 @@ const BrowseItemsPage = () => {
   const itemsRaw = (itemsPage?.content ?? itemsPage) || [];
   const totalPages = itemsPage?.totalPages ?? 1;
 
+  console.log('Items raw:', itemsRaw);
+  console.log('Items raw count:', itemsRaw.length);
+
   // Frontend filtering (advanced + price)
   const items = itemsRaw.filter((it) => {
-    // Price filter
-    const price = it.currentBid ?? it.price ?? 0;
+    // Price filter - check currentBid, minimumBid, or price field
+    const price = it.currentBid ?? it.minimumBid ?? it.price ?? 0;
     if (price < minPrice || price > maxPrice) return false;
 
     // Status filter (heuristic using totalBids or currentBid)
-    if (statusFilter === 'With Bids' && (it.totalBids ?? it.currentBid ?? 0) <= 0) return false;
-    if (statusFilter === 'No Bids' && (it.totalBids ?? it.currentBid ?? 0) > 0) return false;
+    if (statusFilter === 'With Bids' && (!it.totalBids || it.totalBids <= 0)) return false;
+    if (statusFilter === 'No Bids' && (it.totalBids && it.totalBids > 0)) return false;
 
     // Time remaining (requires auctionEndTime)
     if (timeFilter !== 'Any' && it.auctionEndTime) {
@@ -80,11 +108,26 @@ const BrowseItemsPage = () => {
     return true;
   });
 
+  console.log('Items after filtering:', items);
+  console.log('Items after filtering count:', items.length);
+
   const fetchItems = async () => {
     setLoading(true);
     setError(null);
+    console.log('Fetching items with params:', params);
+    // Fetch both active and pending items to show upcoming auctions
     const [data, err] = await getActiveItems(params);
-    if (err) setError(err); else setItemsPage(data);
+    console.log('Items response:', data);
+    console.log('Items error:', err);
+    if (err) {
+      console.error('Error fetching items:', err);
+      setError(err);
+    } else {
+      console.log('Setting items page:', data);
+      console.log('Items content:', data?.content);
+      console.log('Total elements:', data?.totalElements);
+      setItemsPage(data);
+    }
     setLoading(false);
   };
 
@@ -99,7 +142,7 @@ const BrowseItemsPage = () => {
     setCategory('All');
     setSort(SORTS[0].value);
     setMinPrice(0);
-    setMaxPrice(5000);
+    setMaxPrice(100000);
     setStatusFilter('Any');
     setTimeFilter('Any');
     setShowPrice(false);
@@ -202,7 +245,7 @@ const BrowseItemsPage = () => {
                 <input
                   type="range"
                   min={0}
-                  max={5000}
+                  max={100000}
                   value={minPrice}
                   onChange={(e) => setMinPrice(Number(e.target.value))}
                   className="w-full accent-indigo-600"
@@ -213,7 +256,7 @@ const BrowseItemsPage = () => {
                 <input
                   type="range"
                   min={0}
-                  max={5000}
+                  max={100000}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                   className="w-full accent-purple-600"
@@ -358,11 +401,11 @@ const BrowseItemsPage = () => {
                 <div className="mt-2 flex gap-4">
                   <div className="flex-1">
                     <span className="block text-[10px] font-medium text-slate-500">Min ₹{minPrice}</span>
-                    <input type="range" min={0} max={5000} value={minPrice} onChange={(e) => setMinPrice(Number(e.target.value))} className="w-full accent-indigo-600" />
+                    <input type="range" min={0} max={100000} value={minPrice} onChange={(e) => setMinPrice(Number(e.target.value))} className="w-full accent-indigo-600" />
                   </div>
                   <div className="flex-1">
                     <span className="block text-[10px] font-medium text-slate-500">Max ₹{maxPrice}</span>
-                    <input type="range" min={0} max={5000} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-purple-600" />
+                    <input type="range" min={0} max={100000} value={maxPrice} onChange={(e) => setMaxPrice(Number(e.target.value))} className="w-full accent-purple-600" />
                   </div>
                 </div>
               </div>

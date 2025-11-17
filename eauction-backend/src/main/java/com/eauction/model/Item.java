@@ -27,9 +27,9 @@ public class Item {
     private String imageUrl;
     private List<String> images;
     private ItemCondition condition;
-    private Double minimumBid;
-    private Double currentBid;
-    private Double bidIncrement;
+    private Double minimumBid;      // Amount in INR
+    private Double currentBid;      // Amount in INR
+    private Double bidIncrement;    // Amount in INR
     private String sellerId;
     private String sellerName;
     private Instant auctionStartTime;

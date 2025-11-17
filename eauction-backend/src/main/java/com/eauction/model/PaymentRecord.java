@@ -22,7 +22,7 @@ public class PaymentRecord {
     private String auctionId;
     private String buyerId;
     private String sellerId;
-    private Double amount;
+    private Double amount;          // Amount in INR
     private String paymentMethod; // mock_card
     private String status; // completed
 

@@ -5,7 +5,7 @@ import Loader from '../components/Common/Loader.jsx';
 import { getAuction } from '../services/auctionService.js';
 import { placeBid } from '../services/bidService.js';
 import { formatDateTime, timeRemaining } from '../utils/dateUtils.js';
-import { usdToInr, inrToUsd, formatInr } from '../utils/currencyUtils.js';
+import { formatInr } from '../utils/currencyUtils.js';
 
 const AuctionDetailsPage = () => {
   const { id } = useParams();
@@ -33,15 +33,13 @@ const AuctionDetailsPage = () => {
     fetchAuction();
   }, [id]);
 
-  // Calculate minimum bid in USD, then convert to INR
-  const minimumBidUsd = useMemo(() => {
+  // Calculate minimum bid (already in INR)
+  const minimumBidInr = useMemo(() => {
     if (!auction) return 0;
     const current = auction.currentBidAmount ?? 0;
     const minimum = auction.item?.minimumBid ?? 0;
     return Math.max(current, minimum);
   }, [auction]);
-  
-  const minimumBidInr = useMemo(() => usdToInr(minimumBidUsd), [minimumBidUsd]);
 
   const handleBidSubmit = async (event) => {
     event.preventDefault();
@@ -50,7 +48,7 @@ const AuctionDetailsPage = () => {
       setBidError('Item information is unavailable for this auction.');
       return;
     }
-    // User enters INR, validate against INR minimum
+    // User enters INR, submit directly (no conversion)
     const nextBidInr = Number.parseFloat(bidAmount);
 
     if (Number.isNaN(nextBidInr) || nextBidInr <= minimumBidInr) {
@@ -58,12 +56,10 @@ const AuctionDetailsPage = () => {
       return;
     }
 
-    // Convert INR to USD before sending to backend
-    const nextBidUsd = inrToUsd(nextBidInr);
     setPlacingBid(true);
     const [, placeBidError] = await placeBid({
       itemId: auction.item.id,
-      bidAmount: nextBidUsd,
+      bidAmount: nextBidInr,
     });
     setPlacingBid(false);
 

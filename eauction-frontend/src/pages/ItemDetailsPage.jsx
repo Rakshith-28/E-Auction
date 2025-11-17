@@ -8,7 +8,7 @@ import { getItem } from '../services/itemService.js';
 import { getBidsForItem, placeBid } from '../services/bidService.js';
 import { getUserById } from '../services/userService.js';
 import { formatDateTime } from '../utils/dateUtils.js';
-import { formatInr, usdToInr, inrToUsd } from '../utils/currencyUtils.js';
+import { formatInr } from '../utils/currencyUtils.js';
 import { useAuth } from '../hooks/useAuth';
 import { useCart } from '../context/CartContext.jsx';
 import { checkInCart as apiCheckInCart } from '../services/cartService.js';
@@ -31,6 +31,7 @@ const ItemDetailsPage = () => {
   const { addToCart, removeFromCart } = useCart();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingBid, setPendingBid] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const fetchAll = async () => {
     const [[itemData, itemErr], [bidsData, bidsErr]] = await Promise.all([
@@ -84,6 +85,22 @@ const ItemDetailsPage = () => {
     return () => t && clearTimeout(t);
   }, [toast]);
 
+  // Keyboard navigation for image carousel
+  useEffect(() => {
+    if (!item?.images || item.images.length <= 1) return;
+    
+    const handleKeyDown = (e) => {
+      if (e.key === 'ArrowLeft') {
+        setCurrentImageIndex((prev) => (prev === 0 ? item.images.length - 1 : prev - 1));
+      } else if (e.key === 'ArrowRight') {
+        setCurrentImageIndex((prev) => (prev === item.images.length - 1 ? 0 : prev + 1));
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [item?.images]);
+
   const minimumBid = useMemo(() => {
     if (!item) return 0;
     const current = item.currentBid ?? 0;
@@ -91,7 +108,7 @@ const ItemDetailsPage = () => {
     return Math.max(current, minimum);
   }, [item]);
 
-  const minimumBidInr = useMemo(() => usdToInr(minimumBid), [minimumBid]);
+  const minimumBidInr = minimumBid;  // Already in INR, no conversion needed
 
   const handleBid = async (e) => {
     e.preventDefault();
@@ -112,8 +129,8 @@ const ItemDetailsPage = () => {
   const confirmPlaceBid = async () => {
     if (!item || !pendingBid) return false;
     setPlacing(true);
-    const bidAmountUsd = inrToUsd(pendingBid);
-    const [, err] = await placeBid({ itemId: item.id, bidAmount: bidAmountUsd });
+    // Submit INR value directly, no conversion needed
+    const [, err] = await placeBid({ itemId: item.id, bidAmount: pendingBid });
     setPlacing(false);
     if (err) {
       setToast({ type: 'error', title: 'Bid failed', message: err });
@@ -191,8 +208,10 @@ const ItemDetailsPage = () => {
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="relative mx-auto aspect-[4/3] w-full max-w-lg bg-gradient-to-br from-slate-100 to-slate-200">
               {(() => {
-                const raw = item.images?.[0] || item.imageUrl;
-                const src = (() => {
+                const images = item.images && item.images.length > 0 ? item.images : [item.imageUrl].filter(Boolean);
+                const currentImage = images[currentImageIndex] || null;
+                
+                const normalizeUrl = (raw) => {
                   if (!raw) return 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image';
                   if (raw.startsWith('http')) return raw;
                   const uploadsIdx = raw.indexOf('/uploads/');
@@ -200,17 +219,124 @@ const ItemDetailsPage = () => {
                     ? raw.substring(uploadsIdx)
                     : (raw.startsWith('/uploads') ? raw : `/uploads/${raw}`);
                   return `http://localhost:8080${path}`;
-                })();
+                };
+
+                const handlePrevImage = (e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+                };
+
+                const handleNextImage = (e) => {
+                  e.stopPropagation();
+                  setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+                };
+
                 return (
-                  <img
-                    src={src}
-                    alt={item.title}
-                    className="h-full w-full object-cover"
-                    onError={(e) => { e.target.src = 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image'; }}
-                  />
+                  <>
+                    <img
+                      src={normalizeUrl(currentImage)}
+                      alt={`${item.title} - Image ${currentImageIndex + 1}`}
+                      className="h-full w-full object-cover"
+                      onError={(e) => { e.target.src = 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image'; }}
+                    />
+                    
+                    {/* Navigation Arrows */}
+                    {images.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={handlePrevImage}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur transition hover:bg-black/70"
+                          aria-label="Previous image"
+                        >
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleNextImage}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur transition hover:bg-black/70"
+                          aria-label="Next image"
+                        >
+                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
+                        
+                        {/* Image Counter */}
+                        <div className="absolute top-3 right-3 rounded-full bg-black/60 px-3 py-1 text-sm font-medium text-white backdrop-blur">
+                          {currentImageIndex + 1} / {images.length}
+                        </div>
+                        
+                        {/* Dot Indicators */}
+                        <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5">
+                          {images.map((_, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCurrentImageIndex(index);
+                              }}
+                              className={`h-2 w-2 rounded-full transition-all ${
+                                index === currentImageIndex
+                                  ? 'w-6 bg-white'
+                                  : 'bg-white/50 hover:bg-white/75'
+                              }`}
+                              aria-label={`Go to image ${index + 1}`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
                 );
               })()}
             </div>
+            
+            {/* Thumbnail Navigation */}
+            {(() => {
+              const images = item.images && item.images.length > 0 ? item.images : [item.imageUrl].filter(Boolean);
+              const normalizeUrl = (raw) => {
+                if (!raw) return 'https://placehold.co/800x600/e2e8f0/64748b?text=No+Image';
+                if (raw.startsWith('http')) return raw;
+                const uploadsIdx = raw.indexOf('/uploads/');
+                const path = uploadsIdx >= 0
+                  ? raw.substring(uploadsIdx)
+                  : (raw.startsWith('/uploads') ? raw : `/uploads/${raw}`);
+                return `http://localhost:8080${path}`;
+              };
+              
+              if (images.length <= 1) return null;
+              
+              return (
+                <div className="border-t border-slate-100 px-4 py-3">
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {images.map((img, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => setCurrentImageIndex(index)}
+                        className={`h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all ${
+                          index === currentImageIndex
+                            ? 'border-primary-500 ring-2 ring-primary-200'
+                            : 'border-slate-200 hover:border-primary-300'
+                        }`}
+                      >
+                        <img
+                          src={normalizeUrl(img)}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="h-full w-full object-cover"
+                          onError={(e) => { e.target.src = 'https://placehold.co/100x100/e2e8f0/64748b?text=' + (index + 1); }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+            
             <div className="grid gap-4 p-6 text-sm text-slate-600 md:grid-cols-2">
               <div>
                 <div className="text-xs font-medium text-slate-500">Category</div>

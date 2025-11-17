@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getNotifications, getUnreadCount, markAsRead, markAllRead, deleteNotification } from '../../services/notificationService.js';
-import { usdToInr } from '../../utils/currencyUtils.js';
+import { formatInr } from '../../utils/currencyUtils.js';
 import { formatDateTime } from '../../utils/dateUtils.js';
 
 const NotificationBell = () => {
@@ -70,9 +70,9 @@ const NotificationBell = () => {
 
   const renderMessage = (raw) => {
     const msg = raw || '';
-    return msg.replace(/\$(\d+(?:\.\d+)?)/g, (_, num) => {
-      const inr = usdToInr(parseFloat(num));
-      return `₹${inr.toFixed(2)}`;
+    // Amounts are already in INR, just ensure proper formatting
+    return msg.replace(/₹(\d+(?:\.\d+)?)/g, (_, num) => {
+      return `₹${formatInr(parseFloat(num))}`;
     });
   };
 

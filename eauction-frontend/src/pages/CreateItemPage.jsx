@@ -5,7 +5,6 @@ import { createItem } from '../services/itemService.js';
 import { uploadImages } from '../services/uploadService.js';
 import CreateItemConfirmationModal from '../components/Item/CreateItemConfirmationModal.jsx';
 import Toast from '../components/Common/Toast.jsx';
-import { inrToUsd } from '../utils/currencyUtils.js';
 import {
   PackagePlus,
   Type as TypeIcon,
@@ -31,12 +30,29 @@ const INITIAL_FORM = {
 };
 
 const CATEGORIES = [
-  { value: 'Electronics', label: 'Electronics' },
-  { value: 'Fashion', label: 'Fashion' },
-  { value: 'Collectibles', label: 'Collectibles' },
-  { value: 'Home', label: 'Home' },
-  { value: 'Sports', label: 'Sports' },
-  { value: 'Other', label: 'Other' },
+  { value: 'Electronics', label: '📱 Electronics', icon: '📱' },
+  { value: 'Computers', label: '💻 Computers & Laptops', icon: '💻' },
+  { value: 'Mobile', label: '📱 Mobile Phones & Tablets', icon: '📱' },
+  { value: 'Fashion', label: '👗 Fashion & Apparel', icon: '👗' },
+  { value: 'Jewelry', label: '💍 Jewelry & Watches', icon: '💍' },
+  { value: 'Collectibles', label: '🎨 Collectibles & Art', icon: '🎨' },
+  { value: 'Home', label: '🏠 Home & Garden', icon: '🏠' },
+  { value: 'Furniture', label: '🛋️ Furniture', icon: '🛋️' },
+  { value: 'Appliances', label: '🔌 Home Appliances', icon: '🔌' },
+  { value: 'Kitchen', label: '🍳 Kitchen & Dining', icon: '🍳' },
+  { value: 'Sports', label: '⚽ Sports & Fitness', icon: '⚽' },
+  { value: 'Outdoor', label: '🏕️ Outdoor & Camping', icon: '🏕️' },
+  { value: 'Music', label: '🎸 Musical Instruments', icon: '🎸' },
+  { value: 'Books', label: '📚 Books & Media', icon: '📚' },
+  { value: 'Toys', label: '🧸 Toys & Games', icon: '🧸' },
+  { value: 'Automotive', label: '🚗 Automotive & Vehicles', icon: '🚗' },
+  { value: 'Tools', label: '🔧 Tools & Hardware', icon: '🔧' },
+  { value: 'Health', label: '💊 Health & Beauty', icon: '💊' },
+  { value: 'Baby', label: '👶 Baby & Kids', icon: '👶' },
+  { value: 'Pets', label: '🐾 Pet Supplies', icon: '🐾' },
+  { value: 'Office', label: '📎 Office Supplies', icon: '📎' },
+  { value: 'Groceries', label: '🛒 Daily Needs & Groceries', icon: '🛒' },
+  { value: 'Other', label: '📦 Other', icon: '📦' },
 ];
 
 const CreateItemPage = () => {
@@ -114,13 +130,12 @@ const CreateItemPage = () => {
       : new Date().toISOString();
 
     const minimumBidInr = Number.parseFloat(formState.minimumBid);
-    const minimumBidUsd = inrToUsd(minimumBidInr);
 
     const payload = {
       title: formState.title,
       description: formState.description,
       category: formState.category,
-      minimumBid: minimumBidUsd,
+      minimumBid: minimumBidInr,  // Submit INR directly, no conversion needed
       auctionStartTime: startTime,
       auctionEndTime: formState.auctionEndTime ? new Date(formState.auctionEndTime).toISOString() : null,
     };

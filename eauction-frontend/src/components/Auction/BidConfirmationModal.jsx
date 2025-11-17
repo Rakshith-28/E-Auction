@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { X, Loader2, CheckCircle2, TrendingUp } from 'lucide-react';
 import Toast from '../Common/Toast';
-import { formatInr, usdToInr } from '../../utils/currencyUtils';
+import { formatInr } from '../../utils/currencyUtils';
 
 const BidConfirmationModal = ({
   isOpen,
@@ -23,7 +23,7 @@ const BidConfirmationModal = ({
     }
   }, [isOpen]);
 
-  const currentBidInr = useMemo(() => usdToInr(currentBid || 0), [currentBid]);
+  const currentBidInr = currentBid || 0;  // Already in INR
   const isHigher = useMemo(() => Number(bidAmount) > currentBidInr, [bidAmount, currentBidInr]);
 
   if (!isOpen) return null;

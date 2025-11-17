@@ -149,7 +149,9 @@ public class ItemService {
 
     public Page<Item> getActiveItems(Pageable pageable) {
         Instant now = Instant.now();
-        return itemRepository.findByStatusAndAuctionEndTimeAfter(ItemStatus.ACTIVE, now, pageable);
+        // Include both ACTIVE and PENDING items to show upcoming auctions
+        List<ItemStatus> statuses = List.of(ItemStatus.ACTIVE, ItemStatus.PENDING);
+        return itemRepository.findByStatusInAndAuctionEndTimeAfter(statuses, now, pageable);
     }
 
     public List<Item> getActiveItems() {

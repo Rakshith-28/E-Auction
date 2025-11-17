@@ -3,7 +3,7 @@ import { X, Loader2, CreditCard, CheckCircle2 } from 'lucide-react';
 import { confirmPayment } from '../../services/paymentService';
 import Toast from '../Common/Toast';
 import PaymentSuccessModal from './PaymentSuccessModal';
-import { usdToInr, formatInr } from '../../utils/currencyUtils.js';
+import { formatInr } from '../../utils/currencyUtils.js';
 
 // Note: This is a mock payment UI for demonstration only. No real processing.
 const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
@@ -18,9 +18,8 @@ const PaymentModal = ({ isOpen, onClose, auction, user, onSuccess }) => {
   const [showSuccess, setShowSuccess] = useState(false);
 
   // ✅ MOVE ALL HOOKS TO THE TOP - BEFORE ANY RETURNS
-  // Backend amount is in USD, convert to INR for display
-  const bidAmountUsd = Number(auction?.winningBid || 0);
-  const bidAmountInr = useMemo(() => usdToInr(bidAmountUsd), [bidAmountUsd]);
+  // Backend amount is already in INR
+  const bidAmountInr = Number(auction?.winningBid || 0);
   const feeInr = useMemo(() => bidAmountInr * 0.02, [bidAmountInr]);
   const totalInr = useMemo(() => bidAmountInr + feeInr, [bidAmountInr, feeInr]);
 

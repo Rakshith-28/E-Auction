@@ -14,6 +14,7 @@ public interface ItemRepository extends MongoRepository<Item, String> {
     Page<Item> findByStatus(ItemStatus status, Pageable pageable);
     Page<Item> findByStatusAndAuctionEndTimeAfter(ItemStatus status, Instant currentTime, Pageable pageable);
     List<Item> findByStatusAndAuctionEndTimeAfter(ItemStatus status, Instant currentTime);
+    Page<Item> findByStatusInAndAuctionEndTimeAfter(List<ItemStatus> statuses, Instant currentTime, Pageable pageable);
     long countBySellerId(String sellerId);
     long countBySellerIdAndStatus(String sellerId, ItemStatus status);
 }

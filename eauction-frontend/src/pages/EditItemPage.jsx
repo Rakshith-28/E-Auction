@@ -3,7 +3,32 @@ import { useNavigate, useParams } from 'react-router-dom';
 import PageContainer from '../components/Common/PageContainer.jsx';
 import Loader from '../components/Common/Loader.jsx';
 import { getItem, updateItem } from '../services/itemService.js';
-import { usdToInr, inrToUsd } from '../utils/currencyUtils.js';
+
+const CATEGORIES = [
+  { value: 'Electronics', label: '📱 Electronics' },
+  { value: 'Computers', label: '💻 Computers & Laptops' },
+  { value: 'Mobile', label: '📱 Mobile Phones & Tablets' },
+  { value: 'Fashion', label: '👗 Fashion & Apparel' },
+  { value: 'Jewelry', label: '💍 Jewelry & Watches' },
+  { value: 'Collectibles', label: '🎨 Collectibles & Art' },
+  { value: 'Home', label: '🏠 Home & Garden' },
+  { value: 'Furniture', label: '🛋️ Furniture' },
+  { value: 'Appliances', label: '🔌 Home Appliances' },
+  { value: 'Kitchen', label: '🍳 Kitchen & Dining' },
+  { value: 'Sports', label: '⚽ Sports & Fitness' },
+  { value: 'Outdoor', label: '🏕️ Outdoor & Camping' },
+  { value: 'Music', label: '🎸 Musical Instruments' },
+  { value: 'Books', label: '📚 Books & Media' },
+  { value: 'Toys', label: '🧸 Toys & Games' },
+  { value: 'Automotive', label: '🚗 Automotive & Vehicles' },
+  { value: 'Tools', label: '🔧 Tools & Hardware' },
+  { value: 'Health', label: '💊 Health & Beauty' },
+  { value: 'Baby', label: '👶 Baby & Kids' },
+  { value: 'Pets', label: '🐾 Pet Supplies' },
+  { value: 'Office', label: '📎 Office Supplies' },
+  { value: 'Groceries', label: '🛒 Daily Needs & Groceries' },
+  { value: 'Other', label: '📦 Other' },
+];
 
 const EditItemPage = () => {
   const { id } = useParams();
@@ -25,8 +50,8 @@ const EditItemPage = () => {
       } else if (data) {
         const startStr = data.auctionStartTime ? new Date(data.auctionStartTime).toISOString().slice(0, 16) : '';
         const endStr = data.auctionEndTime ? new Date(data.auctionEndTime).toISOString().slice(0, 16) : '';
-        // Convert USD minimum bid from backend to INR for display
-        const minimumBidInr = data.minimumBid ? usdToInr(data.minimumBid) : 0;
+        // Data is already in INR from backend
+        const minimumBidInr = data.minimumBid ? data.minimumBid : 0;
         setFormState({
           title: data.title ?? '',
           description: data.description ?? '',
@@ -62,16 +87,15 @@ const EditItemPage = () => {
     setError(null);
     setSaving(true);
 
-    // Convert INR input to USD for backend
+    // Submit INR value directly, no conversion needed
     const minimumBidInr = Number.parseFloat(formState.minimumBid);
-    const minimumBidUsd = inrToUsd(minimumBidInr);
 
     const payload = {
       title: formState.title,
       description: formState.description,
       category: formState.category,
       imageUrl: formState.imageUrl,
-      minimumBid: minimumBidUsd,
+      minimumBid: minimumBidInr,
     };
 
     // Only include times if user changed and backend rules allow
@@ -155,14 +179,21 @@ const EditItemPage = () => {
             <label htmlFor="category" className="block text-sm font-medium text-slate-700">
               Category
             </label>
-            <input
+            <select
               id="category"
               name="category"
               value={formState.category}
               onChange={handleChange}
               className="mt-2 w-full rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
               required
-            />
+            >
+              <option value="">Select a category</option>
+              {CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

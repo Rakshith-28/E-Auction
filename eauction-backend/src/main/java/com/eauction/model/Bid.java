@@ -21,7 +21,7 @@ public class Bid {
 
     private String itemId;
     private String bidderId;
-    private Double bidAmount;
+    private Double bidAmount;       // Amount in INR
     private Instant bidTime;
     private BidStatus status;
 

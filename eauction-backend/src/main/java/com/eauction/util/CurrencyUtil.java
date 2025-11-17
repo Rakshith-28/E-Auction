@@ -3,18 +3,21 @@ package com.eauction.util;
 import java.text.NumberFormat;
 import java.util.Locale;
 
+/**
+ * Currency utility for formatting INR amounts.
+ * All monetary values are now stored in INR in the database.
+ */
 public final class CurrencyUtil {
-    private static final double USD_TO_INR_RATE = 83.0;
 
     private CurrencyUtil() {}
 
-    public static double usdToInr(Double usd) {
-        if (usd == null) return 0.0;
-        return usd * USD_TO_INR_RATE;
-    }
-
-    public static String formatInr(Double usd) {
-        double inr = usdToInr(usd);
+    /**
+     * Format amount as Indian Rupees
+     * @param inr Amount in INR (already in INR, no conversion needed)
+     * @return Formatted string with ₹ symbol and Indian number formatting
+     */
+    public static String formatInr(Double inr) {
+        if (inr == null) inr = 0.0;
         NumberFormat nf = NumberFormat.getNumberInstance(new Locale("en", "IN"));
         nf.setMinimumFractionDigits(2);
         nf.setMaximumFractionDigits(2);

@@ -80,13 +80,24 @@ const ItemCard = ({ item, onClick }) => {
               : (raw.startsWith('/uploads') ? raw : `/uploads/${raw}`);
             return `http://localhost:8080${path}`;
           })();
+          const imageCount = item.images?.length || 0;
           return (
-            <img
-              src={src}
-              alt={item.title}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              onError={(e) => { e.target.src = 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image'; }}
-            />
+            <>
+              <img
+                src={src}
+                alt={item.title}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                onError={(e) => { e.target.src = 'https://placehold.co/600x450/e2e8f0/64748b?text=No+Image'; }}
+              />
+              {imageCount > 1 && (
+                <div className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-xs font-medium text-white backdrop-blur">
+                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                  </svg>
+                  {imageCount}
+                </div>
+              )}
+            </>
           );
         })()}
         {item.category && (

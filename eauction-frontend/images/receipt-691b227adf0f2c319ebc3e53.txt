@@ -1,0 +1,8 @@
+eAuction Payment Receipt
+
+Transaction ID: 691b227adf0f2c319ebc3e53
+Amount: ₹1439220.00
+Method: mock_card
+Date: 17/11/2025, 18:56:18
+
+Item: Adidas Samba
